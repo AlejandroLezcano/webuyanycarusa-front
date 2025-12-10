@@ -147,7 +147,7 @@ const StepSeriesBody = ({
                 borderColor: !isFormValid ? '#9ca3af' : '#000000',
               }}
             >
-              {loading ? 'Loading...' : 'Continue To Step 3'}
+              {loading ? 'Loading...' : 'Continue to Step 3'}
             </Button>
           </div>
         </form>
