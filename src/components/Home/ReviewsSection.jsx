@@ -18,7 +18,7 @@ const ReviewsSection = () => {
             console.warn("TrustBox desktop widget initialization error:", error);
           }
         }
-        
+
         // Initialize mobile widget
         const mobileWidget = mobileWidgetRef.current?.querySelector(".trustpilot-widget");
         if (mobileWidget && window.Trustpilot.loadFromElement) {
@@ -52,7 +52,7 @@ const ReviewsSection = () => {
   return (
     <section className="bg-white py-16 md:py-24 border-t border-gray-200">
       <div className="section-container">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12 text-center hidden md:block">
+        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-12 text-center hidden md:block">
           Here&apos;s What Our Customers Have to Say ...
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-1 gap-1 max-w-6xl mx-auto">
