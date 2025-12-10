@@ -511,7 +511,7 @@ const ValuationTabs = ({
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {!hideHeaderAndTabs && (
+          {!hideHeaderAndTabs && activeTab === 0 && (
             <div className="text-center">
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 For the Most Accurate Valuation,{" "}
