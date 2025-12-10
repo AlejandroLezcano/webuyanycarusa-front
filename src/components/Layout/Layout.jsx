@@ -8,33 +8,33 @@ import Header from "./Header";
 const Layout = ({ children }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
-  
+
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768); // md breakpoint
     };
-    
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  
+
   // Hide header and footer when in valuation flow after step 1
   // Step 1 is /valuation, steps 2+ are /valuation/vehicledetails, /valuation/vehiclecondition, etc.
-  const isValuationFlowAfterStep1 = 
-    location.pathname.startsWith("/valuation/") && 
+  const isValuationFlowAfterStep1 =
+    location.pathname.startsWith("/valuation/") &&
     location.pathname !== "/valuation";
-  
+
   // Show header in mobile when showing price (step 4 - appointment)
   const isAppointmentStep = location.pathname === "/secure/bookappointment" || location.pathname.includes("/appointment");
-  
+
   // Always show header and footer on confirmation page (both mobile and desktop)
   const isConfirmationPage = location.pathname === "/valuation/confirmation" || location.pathname.includes("/confirmation");
-  
-  const shouldShowHeader = !isValuationFlowAfterStep1 || (isMobile && isAppointmentStep) || isConfirmationPage;
-  const shouldShowFooter = !isValuationFlowAfterStep1 || (isMobile && isAppointmentStep) || isConfirmationPage;
-  
+
+  const shouldShowHeader = (!isValuationFlowAfterStep1 || (isMobile && isAppointmentStep) || isConfirmationPage) && !location.pathname.includes("/secure/bookappointment");
+  const shouldShowFooter = (!isValuationFlowAfterStep1 || (isMobile && isAppointmentStep) || isConfirmationPage) && !location.pathname.includes("/secure/bookappointment");
+
   // Scroll to header when appointment step loads on mobile
   useEffect(() => {
     if (isMobile && isAppointmentStep && shouldShowHeader) {
@@ -47,7 +47,7 @@ const Layout = ({ children }) => {
       }, 100);
     }
   }, [isMobile, isAppointmentStep, shouldShowHeader]);
-  
+
   return (
     <div
       className="min-h-screen flex flex-col w-full overflow-x-hidden"

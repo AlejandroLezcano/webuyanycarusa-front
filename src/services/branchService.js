@@ -9,8 +9,8 @@ import httpClient from './utils/httpClient';
 
 export const getBranches = async (zipCode, limit, type, retries = 3) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.get(`/content/branches?zipCode=${zipCode}&limit=5&branchType=${type}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -21,8 +21,8 @@ export const getBranches = async (zipCode, limit, type, retries = 3) => {
 
 export const getBrancheById = async (idBranch, retries = 3) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/content/branches/${idBranch}`);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.get(`/content/branches/${idBranch}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);
@@ -37,12 +37,12 @@ export const getBranchesByCustomerVehicle = async (zipCode, customerVehicleId) =
     //   zipCode = localStorage.getItem("zipCode");
     // }
 
-    if(customerVehicleId == "" || customerVehicleId == null){
+    if (customerVehicleId == "" || customerVehicleId == null) {
       customerVehicleId = localStorage.getItem("customerVehicleId");
     }
 
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/Appointment/availability/${zipCode}/${customerVehicleId}`);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.get(`/Appointment/availability/${zipCode}/${customerVehicleId}`);
     return response.data;
   } catch (error) {
     console.error('Get branches error:', error);

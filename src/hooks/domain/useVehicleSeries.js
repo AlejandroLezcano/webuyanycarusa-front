@@ -34,11 +34,11 @@ export function useVehicleSeries(vehicleInfo) {
     try {
       const series = await getSeries(
         vehicleInfo.year,
-        vehicleInfo.model,
-        vehicleInfo.make
+        vehicleInfo.make,
+        vehicleInfo.model
       );
       setListSeries(series);
-      
+
       // Auto-select first series if only one
       if (series.length > 0) {
         const uniqueSeries = [...new Set(series.map(item => item.series))];
@@ -47,13 +47,13 @@ export function useVehicleSeries(vehicleInfo) {
         } else {
           setSelectedSeries(series[0].series);
         }
-        
+
         // Load initial image
         if (series[0]?.imageUrl) {
           loadImage(series[0].imageUrl);
         }
       }
-      
+
       return series;
     } catch (err) {
       console.error('Error getting series:', err);
@@ -70,7 +70,7 @@ export function useVehicleSeries(vehicleInfo) {
    */
   const loadImage = useCallback(async (url) => {
     if (!url) return;
-    
+
     try {
       const image = await getImageVehicle(url);
       setImageUrl(image);
@@ -86,11 +86,11 @@ export function useVehicleSeries(vehicleInfo) {
   const handleSeriesChange = useCallback((series) => {
     setSelectedSeries(series);
     setSelectedBodyType('');
-    
+
     if (series) {
       const bodyTypes = listSeries.filter(item => item.series === series);
       setListBodyTypes(bodyTypes);
-      
+
       // Auto-select if only one body type
       if (bodyTypes.length === 1) {
         setSelectedBodyType(bodyTypes[0].bodystyle);
@@ -106,7 +106,7 @@ export function useVehicleSeries(vehicleInfo) {
    */
   const handleBodyTypeChange = useCallback((bodyType) => {
     setSelectedBodyType(bodyType);
-    
+
     // Update image based on body type
     const selected = listBodyTypes.find(item => item.bodystyle === bodyType);
     if (selected?.imageUrl) {
@@ -117,7 +117,7 @@ export function useVehicleSeries(vehicleInfo) {
   /**
    * Get unique series options
    */
-  const seriesOptions = listSeries.length > 0 
+  const seriesOptions = listSeries.length > 0
     ? [...new Set(listSeries.map(item => item.series))]
     : [];
 
@@ -148,7 +148,7 @@ export function useVehicleSeries(vehicleInfo) {
     if (selectedSeries && listSeries.length > 0) {
       const bodyTypes = listSeries.filter(item => item.series === selectedSeries);
       setListBodyTypes(bodyTypes);
-      
+
       if (bodyTypes.length === 1) {
         setSelectedBodyType(bodyTypes[0].bodystyle);
       }

@@ -37,7 +37,7 @@ export default {
       },
       fontFamily: {
         // Univers as primary font with fallbacks
-        sans: ['Univers', 'Arial Rounded MT Bold', 'Arial', 'Tahoma', 'Verdana', 'system-ui', 'sans-serif'],
+        sans: ['Univers', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

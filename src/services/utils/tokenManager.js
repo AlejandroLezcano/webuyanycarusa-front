@@ -1,45 +1,50 @@
 /**
- * Token Manager - Secure token storage in memory
- * Solución de seguridad: Almacena tokens en memoria en lugar de sessionStorage
- * para prevenir ataques XSS
+ * Token Manager - Secure in-memory JWT storage
+ * SECURITY: Keeps tokens out of sessionStorage/localStorage to prevent XSS theft.
+ *
+ * IMPORTANT:
+ *  - Tokens live ONLY in memory.
+ *  - Clearing the token wipes both value and expiration atomically.
  */
 
-// Almacenamiento en memoria (no accesible desde window)
+// In-memory variables (not exposed to window)
 let authToken = null;
 let tokenExpiry = null;
 
 /**
- * Almacena el token de autenticación de forma segura en memoria
- * @param {string} token - Token JWT
- * @param {number} expiresIn - Tiempo de expiración en segundos (opcional)
+ * Stores JWT token securely in memory.
+ * @param {string} token - JWT token
+ * @param {number} expiresIn - Expiration time in seconds (default: 3600)
  */
 export const setToken = (token, expiresIn = 3600) => {
+  if (!token || typeof token !== "string") {
+    console.error("setToken(): invalid token provided");
+    return;
+  }
+
   authToken = token;
-  // Calcular tiempo de expiración
-  tokenExpiry = Date.now() + (expiresIn * 1000);
+  tokenExpiry = Date.now() + expiresIn * 1000;
 };
 
 /**
- * Obtiene el token de autenticación si aún es válido
- * @returns {string|null} Token o null si no existe o expiró
+ * Retrieves the JWT token only if valid.
+ * @returns {string|null} JWT token or null if expired/missing
  */
 export const getToken = () => {
-  // Verificar si el token existe y no ha expirado
-  if (!authToken) {
-    return null;
-  }
-  
+  if (!authToken) return null;
+
+  // Expired token → destroy it
   if (tokenExpiry && Date.now() > tokenExpiry) {
-    // Token expirado, limpiarlo
     clearToken();
     return null;
   }
-  
+
   return authToken;
 };
 
 /**
- * Limpia el token de memoria
+ * Securely clears the token from memory.
+ * Prevents partial clears or stale expiration.
  */
 export const clearToken = () => {
   authToken = null;
@@ -47,7 +52,7 @@ export const clearToken = () => {
 };
 
 /**
- * Verifica si existe un token válido
+ * Checks if the stored token is currently valid.
  * @returns {boolean}
  */
 export const hasValidToken = () => {
@@ -55,21 +60,28 @@ export const hasValidToken = () => {
 };
 
 /**
- * Obtiene el tiempo restante del token en segundos
- * @returns {number} Segundos restantes o 0 si no hay token
+ * Returns remaining lifetime (seconds) for the JWT token.
+ * @returns {number} seconds remaining or 0
  */
 export const getTokenTimeRemaining = () => {
   if (!tokenExpiry) return 0;
-  const remaining = Math.max(0, Math.floor((tokenExpiry - Date.now()) / 1000));
-  return remaining;
+  return Math.max(0, Math.floor((tokenExpiry - Date.now()) / 1000));
 };
 
-// Migración automática: Si hay token en sessionStorage, moverlo a memoria y limpiarlo
-if (typeof window !== 'undefined' && window.sessionStorage) {
-  const oldToken = sessionStorage.getItem('token');
+/**
+ * OPTIONAL: Migrate token from sessionStorage → in-memory.
+ * Disabled by default for maximum security.
+ *
+ * Uncomment only if you're transitioning from an older build
+ * and need backward compatibility.
+ */
+/*
+if (typeof window !== "undefined" && window.sessionStorage) {
+  const oldToken = sessionStorage.getItem("token");
   if (oldToken) {
-    console.warn('⚠️ Migrando token de sessionStorage a almacenamiento seguro en memoria');
+    console.warn("⚠️ Migrating token from sessionStorage → secure in-memory");
     setToken(oldToken);
-    sessionStorage.removeItem('token');
+    sessionStorage.removeItem("token");
   }
 }
+*/

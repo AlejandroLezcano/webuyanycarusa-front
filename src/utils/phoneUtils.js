@@ -27,7 +27,7 @@ export const formatPhoneNumber = (phone) => {
   if (limitedDigits.length <= 6) {
     return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3)}`;
   }
-  return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)} ${limitedDigits.slice(6)}`;
+  return `(${limitedDigits.slice(0, 3)}) ${limitedDigits.slice(3, 6)}-${limitedDigits.slice(6)}`;
 };
 
 /**

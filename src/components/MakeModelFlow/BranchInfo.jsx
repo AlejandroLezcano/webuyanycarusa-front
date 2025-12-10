@@ -14,19 +14,19 @@ const BranchInfo = ({ branch }) => {
   const { branchLocation, distance } = branch;
 
   return (
-    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-6 md:mt-0" style={{marginTop:'0', borderRadius: '0'}}> 
+    <div className="bg-white rounded-3xl p-6 md:p-8 shadow-lg text-center -mt-6 md:mt-0" style={{ marginTop: '0', borderRadius: '0' }}>
       <div className="text-lg md:text-xl font-bold text-gray-900 mb-4">
         Your nearest branch is
         <br />
-        {distance} miles away
+        {distance !== undefined && distance !== null ? Number(distance).toFixed(1) : ''} miles away
       </div>
-      
+
       <hr className="border-t border-gray-300 my-6 max-w-xs mx-auto" />
-      
+
       <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
         {branchLocation?.branchName}
       </h1>
-      
+
       <p className="mb-6">
         <a
           href={branchLocation?.mapURL}
@@ -39,7 +39,7 @@ const BranchInfo = ({ branch }) => {
           {branchLocation?.city}, {branchLocation?.state} {branchLocation?.zipCode}
         </a>
       </p>
-      
+
       <div className="flex flex-col gap-3 max-w-xs mx-auto">
         {branchLocation?.branchPhone && (
           <a
@@ -49,7 +49,7 @@ const BranchInfo = ({ branch }) => {
             Call {branchLocation.branchPhone}
           </a>
         )}
-        
+
         {branchLocation?.branchEmail && (
           <a
             href={`mailto:${branchLocation.branchEmail}`}

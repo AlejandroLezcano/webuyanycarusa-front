@@ -58,7 +58,7 @@ const PROGRESS_STEPS = [
 const MakeModelFlow = () => {
   const navigate = useNavigate();
   const contentRef = useRef(null);
-  
+
   // Global app context
   const {
     vehicleData,
@@ -112,7 +112,7 @@ const MakeModelFlow = () => {
     if (contentRef.current) {
       contentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
+
     // Log reschedule status when on step 4
     if (step === 4) {
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
@@ -145,7 +145,7 @@ const MakeModelFlow = () => {
   // Effect for step 4 reload: Load valuation and branches when page is reloaded
   useEffect(() => {
     const isOnStep4Url = window.location.pathname.includes('/secure/bookappointment');
-    
+
     // Only run if we're on step 4 URL, have journey data, and haven't initialized yet
     if (!isOnStep4Url || !customerJourneyData || step4Initialized) {
       return;
@@ -278,13 +278,13 @@ const MakeModelFlow = () => {
       }
     } catch (error) {
       console.error('Error processing valuation:', error);
-      
+
       // Only set ZIP code error if it's actually a ZIP code related error
       const errorMessage = error.response?.data?.message || error.message || '';
-      const isZipCodeError = errorMessage.toLowerCase().includes('zip') || 
-                            errorMessage.toLowerCase().includes('postal') ||
-                            error.response?.data?.errors?.zipCode;
-      
+      const isZipCodeError = errorMessage.toLowerCase().includes('zip') ||
+        errorMessage.toLowerCase().includes('postal') ||
+        error.response?.data?.errors?.zipCode;
+
       if (isZipCodeError) {
         setZipCodeError('Please enter the ZIP code closest to where you intend to sell the vehicle');
       } else {
@@ -312,7 +312,7 @@ const MakeModelFlow = () => {
   const handleVehicleConditionSubmit = useCallback(async (data) => {
     // Clear ZIP code error when submitting
     setZipCodeError(null);
-    
+
     // Check if additional questions needed
     if (
       data.runsAndDrives === 'No' ||
@@ -409,13 +409,13 @@ const MakeModelFlow = () => {
       // Check if this is a reschedule
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
       const isReschedule = !!existingAppointmentId;
-      
+
       console.log('🔄 [MakeModelFlow] Appointment confirmation:', {
         existingAppointmentId,
         isReschedule,
         appointmentData
       });
-      
+
       const appointmentPayload = {
         customerVehicleId: vehicleData.customerVehicleId,
         branchId: appointmentData.locationId,
@@ -432,59 +432,59 @@ const MakeModelFlow = () => {
         visitId: vehicleData.vid,
         otpCode: appointmentData.otpCode,
       };
-      
-      
-      
-      
+
+
+
+
       // Use reschedule or create appointment based on context
-      const response = isReschedule 
+      const response = isReschedule
         ? await rescheduleAppointment(existingAppointmentId, appointmentPayload)
         : await createAppointment(appointmentPayload);
 
       // Check if response indicates success
       // Backend might return { success: true } or { isValid: true } or just true
-      const isSuccess = response === true || 
-                       response?.success === true || 
-                       response?.isValid === true ||
-                       response?.isSuccess === true ||
-                       (response && !response.error && !response.message?.toLowerCase().includes('invalid'));
+      const isSuccess = response === true ||
+        response?.success === true ||
+        response?.isValid === true ||
+        response?.isSuccess === true ||
+        (response && !response.error && !response.message?.toLowerCase().includes('invalid'));
 
       if (isSuccess) {
         // OTP verification successful - proceed to confirmation
         updateVehicleData({ ...vehicleData, branchInfo: branchSelect });
         updateAppointmentInfo(appointmentData);
-        
+
         // Clear the existing appointment ID if it was a reschedule
         localStorage.removeItem('existingAppointmentId');
-        
+
         // Show success message
         if (window.showToast) {
           const message = isReschedule ? 'Appointment rescheduled successfully!' : 'Appointment confirmed successfully!';
           window.showToast(message, 'success');
         }
-        
+
         navigate(`/valuation/confirmation/${customerJourneyId}`, { replace: true });
         return true; // Indicate success
       } else {
         // OTP verification failed - stay on current page
         const errorMessage = response?.message || 'The OTP you entered is invalid or has expired. Please try again.';
         console.error('OTP verification failed:', response);
-        
+
         if (window.showToast) {
           window.showToast(errorMessage, 'error');
         }
-        
+
         return false; // Indicate failure
       }
     } catch (error) {
       console.error('Error creating appointment:', error);
-      
+
       // Check if it's an OTP validation error (400 or specific error message)
-      const isOTPError = error.response?.status === 400 || 
-                        error.response?.data?.message?.toLowerCase().includes('otp') ||
-                        error.response?.data?.message?.toLowerCase().includes('code') ||
-                        error.response?.data?.message?.toLowerCase().includes('invalid');
-      
+      const isOTPError = error.response?.status === 400 ||
+        error.response?.data?.message?.toLowerCase().includes('otp') ||
+        error.response?.data?.message?.toLowerCase().includes('code') ||
+        error.response?.data?.message?.toLowerCase().includes('invalid');
+
       if (isOTPError) {
         // OTP error - show error in modal
         if (window.showToast) {
@@ -514,11 +514,11 @@ const MakeModelFlow = () => {
     }
 
     setLoadingValuation(true);
-    
+
     try {
-      const customerVehicleId = vehicleData?.customerVehicleId || 
-                               customerJourneyData?.customerVehicleId ||
-                               localStorage.getItem('customerVehicleId');
+      const customerVehicleId = vehicleData?.customerVehicleId ||
+        customerJourneyData?.customerVehicleId ||
+        localStorage.getItem('customerVehicleId');
 
       if (!customerVehicleId) {
         console.error('No customer vehicle ID available');
@@ -531,13 +531,13 @@ const MakeModelFlow = () => {
 
       // Fetch branches for the new ZIP code (validateOnly = true to not trigger navigation)
       const result = await branches.fetchBranches(zipCode, customerVehicleId, true);
-      
+
       if (result && result.branches && result.branches.length > 0) {
         // Only update ZIP code if branches were found
         updateVehicleData({ ...vehicleData, zipCode });
         updateUserInfo({ ...userInfo, zipCode });
         localStorage.setItem('zipCode', zipCode);
-        
+
         if (window.showToast) {
           window.showToast(`Found ${result.branches.length} location(s) near ${zipCode}`, 'success');
         }
@@ -565,16 +565,16 @@ const MakeModelFlow = () => {
    * Handle book appointment from calendar
    */
   const handleBookAppointment = useCallback(async (appointmentData) => {
-    
-    
+
+
     if (!appointmentData.receiveSMS) {
-      
+
       return;
     }
 
     const dateObj = new Date(appointmentData.date);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dateFormatted = `${days[dateObj.getDay()]} ${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()}`;
+    const dateFormatted = `${days[dateObj.getDay()]} ${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
 
     const slotData = {
       locationId: appointmentData.locationId,
@@ -596,19 +596,19 @@ const MakeModelFlow = () => {
     // Update optionalPhoneNumber BEFORE showing OTP modal
     try {
       const phoneNumber = formatPhone(appointmentData.telephone);
-      
-      
-      
-      
+
+
+
+
       const updateResult = await UpdateCustomerJourney(
         {
           optionalPhoneNumber: phoneNumber,
         },
         customerJourneyId
       );
-      
-      
-      
+
+
+
       // Only show OTP modal if update was successful
       setPendingAppointmentData(slotData);
       setShowOTPModal(true);
@@ -637,7 +637,7 @@ const MakeModelFlow = () => {
           navigate('/sell-by-vin');
         }}
         onPlateSubmit={() => navigate('/sell-by-plate')}
-        onOpenVinHelp={() => {}}
+        onOpenVinHelp={() => { }}
         hideHeaderAndTabs={true}
       />
     );
@@ -748,7 +748,7 @@ const MakeModelFlow = () => {
                   const result = await handleAppointmentConfirm({ ...pendingAppointmentData, otpCode });
                   return result; // Return true on success, false on failure
                 }}
-                onOTPResend={() => {}}
+                onOTPResend={() => { }}
                 onResetFlow={resetFlow}
               />
             )}
@@ -765,7 +765,7 @@ const MakeModelFlow = () => {
                   plateState: customerJourneyData?.plateState || vehicleData?.plateState,
                 }}
                 loading={vehicleSeries.loading}
-                imageUrl={customerJourneyData?.vehicleImageUrl || vehicleSeries.imageUrl}
+                imageUrl={vehicleSeries.imageUrl || customerJourneyData?.vehicleImageUrl}
               />
             </div>
           )}

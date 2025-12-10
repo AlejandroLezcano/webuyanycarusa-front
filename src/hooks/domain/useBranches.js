@@ -19,18 +19,18 @@ const transformBranchData = (branch, type = 'branch') => {
 
   for (let i = 0; i < days.length; i++) {
     const fechaHora = branch.timeSlots[`${days[i]}T00:00:00`];
-    
+
     let objData;
     if (type === 'home' && fechaHora) {
       objData = {
-        closeTime: fechaHora[0].timeOfDay === 'Afternoon' ? '01:00 PM' : 
-                   (fechaHora[0].timeOfDay === 'Morning' ? '09:00 AM' : '08:00 PM'),
+        closeTime: fechaHora[0].timeOfDay === 'Afternoon' ? '01:00 PM' :
+          (fechaHora[0].timeOfDay === 'Morning' ? '09:00 AM' : '08:00 PM'),
         date: days[i],
         timeSlotId: fechaHora[0].timeSlotId,
         dayOfWeek: getDayName(days[i]),
         isExceptional: false,
-        openTime: fechaHora[0].timeOfDay === 'Afternoon' ? '01:00 PM' : 
-                  (fechaHora[0].timeOfDay === 'Morning' ? '11:00 AM' : '08:00 PM'),
+        openTime: fechaHora[0].timeOfDay === 'Afternoon' ? '01:00 PM' :
+          (fechaHora[0].timeOfDay === 'Morning' ? '11:00 AM' : '08:00 PM'),
         type: 'open',
       };
     } else {
@@ -61,7 +61,7 @@ const transformBranchData = (branch, type = 'branch') => {
     branchName: branch.branchName,
     branchPhone: branch.telephone,
     city: branch.city,
-    distanceMiles: branch.distanceInMiles,
+    distanceMiles: branch.distanceInMiles || branch.distance || branch.valDistance || branch.miles || 0,
     latitude: '',
     longitude: '',
     type,
@@ -80,7 +80,7 @@ export function useBranches() {
   const [selectedBranchHours, setSelectedBranchHours] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const isLoadingRef = useRef(false);
 
   /**
@@ -92,14 +92,14 @@ export function useBranches() {
   const fetchBranches = useCallback(async (zipCode, customerVehicleId, validateOnly = false) => {
     // Prevent duplicate calls
     if (isLoadingRef.current) return null;
-    
+
     isLoadingRef.current = true;
     setLoading(true);
     setError(null);
 
     try {
       const branchesResponse = await getBranchesByCustomerVehicle(zipCode, customerVehicleId);
-      
+
       // Build transformed branches array
       const transformedBranches = [];
 
@@ -112,7 +112,7 @@ export function useBranches() {
 
       // Transform and add physical branches
       if (branchesResponse?.physical && Array.isArray(branchesResponse.physical)) {
-        const physicalBranches = branchesResponse.physical.map(branch => 
+        const physicalBranches = branchesResponse.physical.map(branch =>
           transformBranchData(branch, 'branch')
         );
         transformedBranches.push(...physicalBranches);
@@ -124,13 +124,18 @@ export function useBranches() {
         setBranchesHours(branchesResponse);
         sessionStorage.setItem('branchesHours', JSON.stringify(branchesResponse));
 
-        // Fetch first branch details
-        const firstBranchDetails = await getBrancheById(transformedBranches[0].branchId);
-        setFirstBranch(firstBranchDetails);
-        
+        // Fetch first branch details (prioritize physical branch)
+        const physicalBranch = transformedBranches.find(b => b.type === 'branch');
+        const branchToUse = physicalBranch || transformedBranches[0];
+
+        const firstBranchDetails = await getBrancheById(branchToUse.branchId);
+        setFirstBranch({
+          ...firstBranchDetails,
+          distance: branchToUse.distanceMiles
+        });
+
         return { branches: transformedBranches, shouldNavigate: !validateOnly };
       } else {
-        // No branches found - don't update state, return empty result
         setError('No branches found for this ZIP code');
         return { branches: [], shouldNavigate: false };
       }
@@ -151,13 +156,13 @@ export function useBranches() {
    * @param {string} date - Date string
    */
   const getBranchTimeSlots = useCallback((branchId, date) => {
-    const storedHours = branchesHours.length > 0 
-      ? branchesHours 
+    const storedHours = branchesHours.length > 0
+      ? branchesHours
       : JSON.parse(sessionStorage.getItem('branchesHours') || '{}');
 
     const physicalBranch = storedHours?.physical?.find(b => b.branchId === branchId);
     const mobileBranch = storedHours?.mobile?.branchId === branchId ? storedHours.mobile : null;
-    
+
     const branch = physicalBranch || mobileBranch;
     if (!branch) return null;
 

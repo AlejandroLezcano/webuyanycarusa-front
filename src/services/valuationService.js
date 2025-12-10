@@ -119,7 +119,7 @@ export const getVehicleValuation = async (vehicleData, userInfo, retries = 2) =>
 
 export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
   try {
-    if(valuationVehicle.email === ""){
+    if (valuationVehicle.email === "") {
       const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
       valuationVehicle = {
         ...valuationVehicle,
@@ -127,18 +127,18 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
         optionalPhoneNumber: data?.phone == "" ? null : data?.phone,
       };
     }
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/Valuation`, valuationVehicle);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/Valuation`, valuationVehicle);
     return response.data;
   } catch (error) {
     console.error('Save valuation vehicle error:', error);
-    
+
     // Check if it's a 500 or 404 error - don't retry, throw immediately
     const status = error.response?.status;
     if (status === 500 || status === 404) {
       throw error; // Throw error to be caught by caller
     }
-    
+
     // For other errors, retry
     if (retries === 0) {
       throw error; // Throw error after all retries exhausted
@@ -150,8 +150,8 @@ export const saveValuationVehicle = async (valuationVehicle, retries = 2) => {
 
 export const getValuationVehicle = async (id, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/Valuation/${id.toString()}`);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.get(`/Valuation/${id.toString()}`);
     return response.data.sort();
   } catch (error) {
     console.error('Get valuation error:', error);
@@ -174,7 +174,7 @@ export const submitVehicleOffer = async (
   retries = 2
 ) => {
   try {
-    const response = await httpClient.post('/api/offers', {
+    const response = await httpClient.post('/offers', {
       vehicle: vehicleData,
       user: userInfo,
       appointment: appointmentInfo,

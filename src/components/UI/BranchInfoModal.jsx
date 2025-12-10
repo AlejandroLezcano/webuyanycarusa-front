@@ -4,60 +4,6 @@ import { X, Phone, MapPin, Globe, Mail } from "lucide-react";
 const BranchInfoModal = ({ isOpen, onClose, branch }) => {
   if (!isOpen || !branch) return null;
 
-  // Branch data - esto debería venir de una API en producción
-  const branchData = {
-    union: {
-      name: "Union",
-      state: "NJ",
-      address: "2565 Route 22 West",
-      suite: "Suite E",
-      city: "Union, NJ 07083",
-      phone: "(908) 873-6460",
-      phoneRaw: "9088736460",
-      email: "union.nj@webuyanycarusa.com",
-      mapUrl: "https://maps.google.com/maps?cid=5275190412442297199",
-      webPage: "/sell-car/new-jersey-nj/union",
-      image: "https://publiccdn.webuyanycarusa.com/branchimages/We Buy Any Car Union NJ_thumbnail.jpg",
-      hours: {
-        Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Tuesday: "Closed",
-        Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
-        Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Saturday: "9a.m. - 1p.m., 2p.m. - 6p.m.",
-        Sunday: "Closed",
-      },
-      description: "It can be a headache trying to sell a car in Union, NJ. That's why webuyanycar.com has opened a branch in your local area. Our streamlined process makes it quick and easy to sell a car. Start by getting an online valuation to find out how much your car is worth. Once complete, you can easily finalize the transaction by booking an appointment and bringing your car into our conveniently located branch. The best part is you'll leave with a check in hand which you can cash right away! We are the fast, safe and fair way to sell a vehicle in Union, NJ.",
-      areasServed: "Clark, Cranford, Elizabeth, Garwood, Hillside, Irvington, Kenilworth, Linden, Maplewood, Millburn, Mountainside, Roselle Park, Roselle, Short Hills, South Orange, Springfield, Summit, Union, Vauxhall, Westfield",
-      mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.5!2d-74.3083!3d40.688244!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c3b2b3c3c3c3c3%3A0x3c3c3c3c3c3c3c3c!2s2565%20Route%2022%20West%2C%20Suite%20E%2C%20Union%2C%20NJ%2007083!5e0!3m2!1sen!2sus!4v1234567890",
-    },
-    plainfield: {
-      name: "Plainfield",
-      state: "NJ",
-      address: "Address TBD",
-      suite: "",
-      city: "Plainfield, NJ",
-      phone: "(908) 873-6950",
-      phoneRaw: "9088736950",
-      email: "plainfield.nj@webuyanycarusa.com",
-      mapUrl: "https://maps.google.com/maps",
-      webPage: "/sell-car/new-jersey-nj/plainfield",
-      image: "",
-      hours: {
-        Monday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Tuesday: "Closed",
-        Wednesday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Thursday: "11a.m. - 2p.m., 3p.m. - 8p.m.",
-        Friday: "10a.m. - 1p.m., 2p.m. - 7p.m.",
-        Saturday: "9a.m. - 1p.m., 2p.m. - 6p.m.",
-        Sunday: "Closed",
-      },
-      description: "We Buy Any Car Plainfield branch information.",
-      areasServed: "Plainfield and surrounding areas",
-      mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.5!2d-74.3083!3d40.688244!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQxJzE3LjciTiA3NMKwMTgnMjkuOSJX!5e0!3m2!1sen!2sus!4v1234567890",
-    },
-  };
-
   const data = branch;
 
   return (
@@ -239,12 +185,12 @@ const BranchInfoModal = ({ isOpen, onClose, branch }) => {
                 <p className="text-gray-700 mb-2">
                   Click to see a full list of all{" "}
                   <a
-                    href="https://www.webuyanycarusa.com/sell-car/north-jersey"
+                    href={data.webPage ? data.webPage.replace(/\/[^/]+$/, '') : "https://www.webuyanycarusa.com/sell-car"} // Try to strip city from URL to get state listing
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary-600 hover:underline"
                   >
-                    We Buy Any Car North Jersey Branches
+                    We Buy Any Car {data.state || 'local'} Branches
                   </a>
                 </p>
                 <p className="text-gray-700">

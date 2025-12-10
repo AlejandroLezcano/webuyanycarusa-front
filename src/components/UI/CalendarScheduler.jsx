@@ -24,6 +24,7 @@ const CalendarScheduler = ({
   onSlotClick,
   onBookAppointment,
   initialPhone = "",
+  userZipCode = "",
   branches,
 }) => {
   const [dayOffset, setDayOffset] = useState(0); // Start from today (offset 0)
@@ -68,7 +69,18 @@ const CalendarScheduler = ({
           phone: branch.branchPhone,
           type: branch.type,
           availability: obj,
+          distance: branch.distanceMiles ? `${branch.distanceMiles.toFixed(1)} mi` : null,
+          distanceValue: branch.distanceMiles || 999, // For sorting (999 = no distance data)
         }
+      });
+
+      // Sort locations by distance (closest first), keeping "home" type at top
+      locs.sort((a, b) => {
+        // "We Come to You" (home type) always first
+        if (a.type === 'home' && b.type !== 'home') return -1;
+        if (b.type === 'home' && a.type !== 'home') return 1;
+        // Then sort by distance
+        return a.distanceValue - b.distanceValue;
       });
 
       setLocations(locs);
@@ -118,13 +130,13 @@ const CalendarScheduler = ({
     for (let i = 0; i < 7; i++) {
       const date = new Date();
       date.setDate(date.getDate() + offset + i);
-      // Format: day/month/year (DD/MM/YYYY)
+      // Format: month/day/year (MM/DD/YYYY) - American format
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
       dates.push({
         day: days[date.getDay()],
-        date: `${day}/${month}/${year}`,
+        date: `${month}/${day}/${year}`,
         fullDate: `${year}-${month}-${day}`,
         dayIndex: date.getDay(),
       });
@@ -148,13 +160,13 @@ const CalendarScheduler = ({
     for (let i = 0; i < MAX_DAYS_AHEAD; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
-      // Format: day/month/year (DD/MM/YYYY)
+      // Format: month/day/year (MM/DD/YYYY) - American format
       const day = String(date.getDate()).padStart(2, "0");
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const year = date.getFullYear();
       dates.push({
         day: days[date.getDay()],
-        date: `${day}/${month}/${year}`,
+        date: `${month}/${day}/${year}`,
         fullDate: date.toISOString().split("T")[0],
         dayIndex: date.getDay(),
       });
@@ -275,7 +287,7 @@ const CalendarScheduler = ({
   const [address1, setAddress1] = useState("");
   const [address2, setAddress2] = useState("");
   const [city, setCity] = useState("");
-  const [stateZip, setStateZip] = useState("NJ, 07008");
+  const [stateZip, setStateZip] = useState(userZipCode || "NJ, 07008");
   const smsCheckboxRef = useRef(null);
   const smsCheckboxContainerRef = useRef(null);
   const smsCheckboxBranchRef = useRef(null);
@@ -377,6 +389,7 @@ const CalendarScheduler = ({
   const loadDataBranch = (location) => {
     getBrancheById(location.id).then(response => {
       const res = response.branchLocation;
+      console.log('DEBUG: Branch Details Response', res);
       const obj = {};
       for (let i = 0; i < res.operationHours.length; i++) {
         const hour = res.operationHours[i];
@@ -387,17 +400,32 @@ const CalendarScheduler = ({
         }
       }
 
+      // Helper to generate slug
+      const toSlug = (str) => str ? str.toLowerCase().replace(/[^a-z0-9]+/g, '-') : '';
+
+      const stateName = res.state || 'NJ'; // Fallback if missing, but should be there
+      const stateSlug = toSlug(stateName);
+      const citySlug = toSlug(res.city);
+      const branchSlug = toSlug(res.branchName);
+
       const data = {
         name: res.branchName,
-        state: res.city,
+        state: res.state || res.city, // Use state if available
         address: res.address1,
         suite: "",
         city: res.city,
+        zipCode: res.zipCode, // Added zipCode
         phone: res.branchPhone,
-        phoneRaw: res.branchPhone,
-        email: res.branchEmail,
+        phoneRaw: res.branchPhone ? res.branchPhone.replace(/\D/g, "") : "",
+        email: !res.branchEmail || res.branchEmail.includes('test.branchmanager')
+          ? `${citySlug}.${stateSlug}@webuyanycarusa.com`
+          : res.branchEmail,
         mapUrl: res.mapURL,
-        webPage: ``,
+        // Construct dynamic web page URL - attempting to match pattern /sell-car/new-jersey-nj/union
+        // Since we don't have full state name usually from short code (NJ), might need a map or simplified URL
+        // Using a generic safer URL or attempting construction if possible. 
+        // For now, pointing to the general branch locator or using constructed slug if likely valid.
+        webPage: `https://www.webuyanycarusa.com/sell-car/${stateSlug}/${citySlug}`,
         image: res.branchImageUrl,
         hours: obj,
         description: `We Buy Any Car ${res.branchName} branch information.`,
@@ -541,8 +569,7 @@ const CalendarScheduler = ({
                       data-booking-requires-otp="true"
                     >
                       {location.name}
-                      {location.location && ` ${location.location}`}
-                      {location.distance && ` ${location.distance}`}
+                      {location.distance && ` - ${location.distance}`}
                     </option>
                   ))}
                 <option value="0" data-booking-requires-otp="undefined">
@@ -669,31 +696,33 @@ const CalendarScheduler = ({
               </select>
             </div>
 
-            {/* Time Select */}
-            <select
-              className="countable w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 font-semibold appearance-none pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-              data-defaulttext="Select Time"
-              data-val="true"
-              data-val-required="Please select a time."
-              disabled={!selectedDateMobile || !selectedLocationMobile}
-              id="AvailableTime"
-              name="AvailableTime"
-              value={selectedTimeMobile}
-              onChange={handleMobileTimeChange}
-              style={{ maxWidth: "100%", boxSizing: "border-box" }}
-            >
-              <option value="">Select Time</option>
-              {selectedLocationMobile &&
-                selectedDateMobile &&
-                getAvailableTimesForDate(
-                  selectedLocationMobile,
-                  selectedDateMobile,
-                ).map((timeSlot, index) => (
-                  <option key={timeSlot + "-" + index} value={timeSlot}>
-                    {timeSlot}
-                  </option>
-                ))}
-            </select>
+            {/* Time Select - Hidden on mobile for home appointments */}
+            <div className="hidden md:block">
+              <select
+                className="countable w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 font-semibold appearance-none pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                data-defaulttext="Select Time"
+                data-val="true"
+                data-val-required="Please select a time."
+                disabled={!selectedDateMobile || !selectedLocationMobile}
+                id="AvailableTime"
+                name="AvailableTime"
+                value={selectedTimeMobile}
+                onChange={handleMobileTimeChange}
+                style={{ maxWidth: "100%", boxSizing: "border-box" }}
+              >
+                <option value="">Select Time</option>
+                {selectedLocationMobile &&
+                  selectedDateMobile &&
+                  getAvailableTimesForDate(
+                    selectedLocationMobile,
+                    selectedDateMobile,
+                  ).map((timeSlot, index) => (
+                    <option key={timeSlot + "-" + index} value={timeSlot}>
+                      {timeSlot}
+                    </option>
+                  ))}
+              </select>
+            </div>
 
             {/* Step 4: Confirm Contact Info - Always visible for Home (no branch selection) */}
             <div id="confirm-contact-info-header" className="step-header mt-6">
@@ -836,9 +865,13 @@ const CalendarScheduler = ({
                       <div>
                         <div className="font-bold text-gray-900 text-sm md:text-base">
                           {location.type === "home" ? 'We Come to You' : location.name}
-                          {location.location && ` ${location.location}`}
-                          {location.distance && ` ${location.distance}`}
                         </div>
+                        {location.distance && location.type !== "home" && (
+                          <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {location.distance} away
+                          </div>
+                        )}
                         <a
                           href={`tel:${location.phone}`}
                           className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1 mt-1"
@@ -893,10 +926,10 @@ const CalendarScheduler = ({
                             whileHover={available ? { scale: 1.05 } : {}}
                             whileTap={available ? { scale: 0.95 } : {}}
                             className={`w-full py-2 px-2 rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${isSelected
-                                ? "bg-primary-600 text-white shadow-lg scale-105"
-                                : available
-                                  ? "bg-gray-100 text-primary-700 hover:bg-primary-50 hover:scale-105"
-                                  : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                              ? "bg-primary-600 text-white shadow-lg scale-105"
+                              : available
+                                ? "bg-gray-100 text-primary-700 hover:bg-primary-50 hover:scale-105"
+                                : "bg-gray-50 text-gray-400 cursor-not-allowed"
                               }`}
                           >
                             {timeSlot}
@@ -928,8 +961,8 @@ const CalendarScheduler = ({
             whileHover={canGoBack ? { scale: 1.05, x: -5 } : {}}
             whileTap={canGoBack ? { scale: 0.95 } : {}}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoBack
-                ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
-                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
+              : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}
           >
             <ChevronLeft className="w-5 h-5" />
@@ -957,8 +990,8 @@ const CalendarScheduler = ({
                     setZipCodeError(""); // Clear error when user types
                   }}
                   className={`flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-0 ${zipCodeError
-                      ? 'border-2 border-red-500 focus:ring-red-500'
-                      : 'border border-white/30 focus:ring-white/50'
+                    ? 'border-2 border-red-500 focus:ring-red-500'
+                    : 'border border-white/30 focus:ring-white/50'
                     }`}
                   style={{
                     background: "rgba(255, 255, 255, 0.95)",
@@ -987,8 +1020,8 @@ const CalendarScheduler = ({
             whileHover={canGoForward ? { scale: 1.05, x: 5 } : {}}
             whileTap={canGoForward ? { scale: 0.95 } : {}}
             className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoForward
-                ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
-                : "bg-gray-400 text-gray-200 cursor-not-allowed"
+              ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
+              : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}
             style={{
               outline: canGoForward

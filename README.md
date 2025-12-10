@@ -1,126 +1,134 @@
 # WeBuyAnyCar USA - Frontend
 
-Aplicación web desarrollada con React 18 y Vite que permite a los usuarios valuar y vender sus vehículos. La aplicación ofrece múltiples flujos de entrada (VIN, Make/Model, License Plate) y gestiona todo el proceso desde la valuación inicial hasta la programación de citas.
+Web application developed with React 18 and Vite that allows users to value and sell their vehicles. The application offers multiple entry flows (VIN, Make/Model, License Plate) and manages the entire process from initial valuation to appointment scheduling.
 
-## 📋 Descripción del Proyecto
+## 📋 Project Description
 
-Este proyecto es el frontend de la plataforma WeBuyAnyCar USA, una aplicación React moderna y responsive que permite a los usuarios:
+This project is the frontend of the WeBuyAnyCar USA platform, a modern and responsive React application that allows users to:
 
-- **Valuar vehículos** mediante tres métodos diferentes:
-  - Número VIN (Vehicle Identification Number)
-  - Marca y Modelo
-  - Placa del vehículo
-- **Gestionar citas** para evaluación presencial de vehículos
-- **Consultar sucursales cercanas** basadas en ubicación
-- **Seguir el proceso completo** desde la valuación hasta la confirmación
+- **Value vehicles** through three different methods:
+  - VIN Number (Vehicle Identification Number)
+  - Make and Model
+  - Vehicle License Plate
+- **Manage appointments** for in-person vehicle evaluation
+- **Search nearby branches** based on location
+- **Follow the complete process** from valuation to confirmation
 
-## ✨ Características Principales
+## ✨ Main Features
 
-- 🚗 **Múltiples Flujos de Valuación**: VIN, Make/Model, y License Plate
-- 📅 **Sistema de Citas**: Calendario interactivo para programar evaluaciones
-- 📍 **Búsqueda de Sucursales**: Localización de tiendas cercanas
-- 🎨 **UI Moderna**: Diseño responsive con Tailwind CSS
-- ⚡ **Rendimiento Optimizado**: Construido con Vite para carga rápida
-- 🎭 **Animaciones Suaves**: Transiciones con Framer Motion
-- 📊 **Tracking Integrado**: Google Tag Manager para analytics
-- 🔄 **Gestión de Estado**: Context API para estado global
-- 📝 **Validación de Formularios**: React Hook Form con validaciones
+- 🚗 **Multiple Valuation Flows**: VIN, Make/Model, and License Plate
+- 📅 **Appointment System**: Interactive calendar to schedule evaluations
+- 📍 **Branch Search**: Locating nearby stores
+- 🎨 **Modern UI**: Responsive design with Tailwind CSS
+- ⚡ **Optimized Performance**: Built with Vite for fast loading
+- 🎭 **Smooth Animations**: Transitions with Framer Motion
+- 📊 **Integrated Tracking**: Google Tag Manager for analytics
+- 🔄 **State Management**: Context API for global state
+- 📝 **Form Validation**: React Hook Form with validations
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Technologies Used
 
 ### Core
-- **React 18.2.0**: Biblioteca principal para UI
-- **Vite 5.1.0**: Build tool y dev server
-- **React Router DOM 6.22.0**: Navegación y routing
+- **React 18.2.0**: Main UI library
+- **Vite 5.1.0**: Build tool and dev server
+- **React Router DOM 6.22.0**: Navigation and routing
 
 ### UI/UX
-- **Tailwind CSS 3.4.1**: Framework de estilos utility-first
-- **Framer Motion 11.0.3**: Animaciones y transiciones
-- **Lucide React 0.323.0**: Iconos modernos
+- **Tailwind CSS 3.4.1**: Utility-first style framework
+- **Framer Motion 11.0.3**: Animations and transitions
+- **Lucide React 0.323.0**: Modern icons
 
-### Formularios y Validación
-- **React Hook Form 7.50.0**: Manejo de formularios
-- **Axios 1.6.7**: Cliente HTTP para llamadas API
+### Forms and Validation
+- **React Hook Form 7.50.0**: Form handling
+- **Axios 1.6.7**: HTTP client for API calls
 
-### Utilidades
-- **clsx 2.1.0**: Utilidad para clases CSS condicionales
+### Utilities
+- **clsx 2.1.0**: Utility for conditional CSS classes
 
-## 📦 Requisitos Previos
+## 📦 Prerequisites
 
-Antes de comenzar, asegúrate de tener instalado:
+Before starting, make sure you have installed:
 
-- [Node.js](https://nodejs.org/) (versión 18.x o superior recomendada)
-- [npm](https://www.npmjs.com/) (viene con Node.js) o [yarn](https://yarnpkg.com/)
-- [Git](https://git-scm.com/) (opcional, para clonar el repositorio)
-- Un editor de código como [Visual Studio Code](https://code.visualstudio.com/)
+- [Node.js](https://nodejs.org/) (version 18.x or higher recommended)
+- [npm](https://www.npmjs.com/) (comes with Node.js) or [yarn](https://yarnpkg.com/)
+- [Git](https://git-scm.com/) (optional, to clone the repository)
+- A code editor like [Visual Studio Code](https://code.visualstudio.com/)
 
-## 🚀 Instalación y Configuración
+## 🚀 Installation and Setup
 
-### Paso 1: Clonar o Navegar al Proyecto
+### Step 1: Clone or Navigate to the Project
 
-Si tienes el proyecto en un repositorio Git:
+If you have the project in a Git repository:
 ```bash
-git clone <url-del-repositorio>
+git clone <repository-url>
 cd buy-cars/we-buy-any-car-front
 ```
 
-O simplemente navega a la carpeta del proyecto:
+Or simply navigate to the project folder:
 ```bash
 cd we-buy-any-car-front
 ```
 
-### Paso 2: Instalar Dependencias
+### Step 2: Install Dependencies
 
-Instala todas las dependencias del proyecto usando npm:
+Install all project dependencies using npm:
 
 ```bash
 npm install
 ```
 
-O si prefieres usar yarn:
+Or if you prefer using yarn:
 ```bash
 yarn install
 ```
 
-Este comando leerá el archivo `package.json` y descargará todas las dependencias necesarias en la carpeta `node_modules`.
+This command will read the `package.json` file and download all necessary dependencies into the `node_modules` folder.
 
-### Paso 3: Configurar Variables de Entorno
+### Step 3: Configure Environment Variables
 
-Crea un archivo `.env` en la raíz del proyecto (junto a `package.json`) con las siguientes variables:
+Create a `.env` file in the project root (next to `package.json`) with the following variables:
 
 ```env
-# URL base de la API backend
-VITE_API_BASE_URL=http://localhost:5001
+# Backend API base URL
+VITE_API_BASE_URL=http://localhost:5000/api
 
-# O para producción:
-# VITE_API_BASE_URL=https://api.webuyanycarusa.com
+# Authentication credentials for API access
+VITE_AUTH_USERNAME=your_username
+VITE_AUTH_PASSWORD=your_password
+
+# Or for production:
+# VITE_API_BASE_URL=https://api.webuyanycarusa.com/api
+# VITE_AUTH_USERNAME=production_username
+# VITE_AUTH_PASSWORD=production_password
 ```
 
-> **Nota**: Las variables de entorno en Vite deben comenzar con `VITE_` para ser accesibles en el código.
+> **Note**: Environment variables in Vite must start with `VITE_` to be accessible in the code.
 
-### Paso 4: Verificar la Configuración
+> **Important**: The authentication credentials are required for the automatic token refresh functionality. Make sure to replace the placeholder values with actual credentials.
 
-Asegúrate de que:
-- El archivo `.env` existe en la raíz del proyecto
-- La URL de la API backend es correcta
-- Todas las dependencias se instalaron correctamente (verifica que existe la carpeta `node_modules`)
+### Step 4: Verify Configuration
 
-## ▶️ Cómo Ejecutar el Proyecto
+Make sure that:
+- The `.env` file exists in the project root
+- The backend API URL is correct
+- All dependencies installed correctly (verify that the `node_modules` folder exists)
 
-### Modo Desarrollo
+## ▶️ How to Run the Project
 
-Para ejecutar el proyecto en modo desarrollo con hot-reload:
+### Development Mode
+
+To run the project in development mode with hot-reload:
 
 ```bash
 npm run dev
 ```
 
-O con yarn:
+Or with yarn:
 ```bash
 yarn dev
 ```
 
-El servidor de desarrollo se iniciará y verás un mensaje similar a:
+The development server will start and you'll see a message similar to:
 ```
   VITE v5.1.0  ready in 500 ms
 
@@ -128,147 +136,147 @@ El servidor de desarrollo se iniciará y verás un mensaje similar a:
   ➜  Network: use --host to expose
 ```
 
-La aplicación se abrirá automáticamente en tu navegador en `http://localhost:3000`.
+The application will automatically open in your browser at `http://localhost:3000`.
 
-**Características del modo desarrollo:**
-- Hot Module Replacement (HMR) - Los cambios se reflejan instantáneamente
-- Source maps para debugging
-- Errores detallados en consola
+**Development mode features:**
+- Hot Module Replacement (HMR) - Changes are reflected instantly
+- Source maps for debugging
+- Detailed errors in console
 
-### Modo Producción (Build)
+### Production Mode (Build)
 
-Para crear una versión optimizada para producción:
+To create an optimized version for production:
 
 ```bash
 npm run build
 ```
 
-O con yarn:
+Or with yarn:
 ```bash
 yarn build
 ```
 
-Esto generará una carpeta `dist/` con los archivos optimizados y minificados listos para desplegar.
+This will generate a `dist/` folder with optimized and minified files ready for deployment.
 
-### Preview del Build de Producción
+### Preview Production Build
 
-Para previsualizar el build de producción localmente:
+To preview the production build locally:
 
 ```bash
 npm run preview
 ```
 
-Esto iniciará un servidor local que sirve los archivos de la carpeta `dist/`, simulando cómo se verá en producción.
+This will start a local server that serves the files from the `dist/` folder, simulating how it will look in production.
 
 ### Linting
 
-Para verificar el código con ESLint:
+To check the code with ESLint:
 
 ```bash
 npm run lint
 ```
 
-Esto mostrará errores y advertencias de estilo de código.
+This will show code style errors and warnings.
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 we-buy-any-car-front/
-├── public/                 # Archivos estáticos (si existen)
+├── public/                 # Static files (if any)
 ├── src/
-│   ├── components/         # Componentes reutilizables
-│   │   ├── Appointment/    # Componentes de citas
-│   │   ├── Home/           # Componentes de la página principal
+│   ├── components/         # Reusable components
+│   │   ├── Appointment/    # Appointment components
+│   │   ├── Home/           # Home page components
 │   │   ├── Layout/         # Header, Footer, Layout
 │   │   ├── Tracking/       # Google Tag Manager
-│   │   ├── UI/             # Componentes UI genéricos
-│   │   └── VehiclePreview/ # Vista previa de vehículos
-│   ├── context/            # Context API (estado global)
+│   │   ├── UI/             # Generic UI components
+│   │   └── VehiclePreview/ # Vehicle preview
+│   ├── context/            # Context API (global state)
 │   ├── hooks/              # Custom React hooks
-│   ├── pages/              # Páginas/Views principales
-│   ├── services/           # Servicios API y llamadas HTTP
-│   ├── utils/              # Utilidades y helpers
-│   ├── App.jsx             # Componente raíz de la app
-│   ├── App.css             # Estilos globales
-│   ├── main.jsx            # Punto de entrada
-│   └── index.css           # Estilos base
-├── .env                    # Variables de entorno (crear)
-├── .gitignore              # Archivos ignorados por Git
-├── index.html              # HTML principal
-├── package.json            # Dependencias y scripts
-├── vite.config.js          # Configuración de Vite
-└── README.md               # Este archivo
+│   ├── pages/              # Main pages/Views
+│   ├── services/           # API services and HTTP calls
+│   ├── utils/              # Utilities and helpers
+│   ├── App.jsx             # Root app component
+│   ├── App.css             # Global styles
+│   ├── main.jsx            # Entry point
+│   └── index.css           # Base styles
+├── .env                    # Environment variables (create)
+├── .gitignore              # Files ignored by Git
+├── index.html              # Main HTML
+├── package.json            # Dependencies and scripts
+├── vite.config.js          # Vite configuration
+└── README.md               # This file
 ```
 
-## 🎯 Flujos de la Aplicación
+## 🎯 Application Flows
 
-### 1. Flujo VIN
-- Usuario ingresa el número VIN
-- Validación y decodificación del VIN
-- Obtención de información del vehículo
-- Continuación al flujo de valuación
+### 1. VIN Flow
+- User enters VIN number
+- VIN validation and decoding
+- Vehicle information retrieval
+- Continue to valuation flow
 
-### 2. Flujo Make/Model
-- Selección de año del vehículo
-- Selección de marca
-- Selección de modelo
-- Continuación al flujo de valuación
+### 2. Make/Model Flow
+- Vehicle year selection
+- Make selection
+- Model selection
+- Continue to valuation flow
 
-### 3. Flujo License Plate
-- Ingreso de placa del vehículo
-- Validación y búsqueda
-- Continuación al flujo de valuación
+### 3. License Plate Flow
+- Vehicle plate entry
+- Validation and search
+- Continue to valuation flow
 
-### 4. Flujo de Citas
-- Selección de tipo de cita
-- Selección de sucursal
-- Selección de fecha y hora
-- Confirmación de cita
+### 4. Appointment Flow
+- Appointment type selection
+- Branch selection
+- Date and time selection
+- Appointment confirmation
 
-## 🔌 Integración con Backend
+## 🔌 Backend Integration
 
-La aplicación se conecta con la API backend mediante el servicio `api.js`. Asegúrate de que:
+The application connects with the backend API through the `api.js` service. Make sure that:
 
-1. El backend esté corriendo (ver README del backend)
-2. La variable `VITE_API_BASE_URL` en `.env` apunte a la URL correcta
-3. El backend tenga CORS configurado para permitir solicitudes desde el frontend
+1. The backend is running (see backend README)
+2. The `VITE_API_BASE_URL` variable in `.env` points to the correct URL
+3. The backend has CORS configured to allow requests from the frontend
 
-### Endpoints Utilizados
+### Endpoints Used
 
-- `POST /api/v1/auth/login` - Autenticación
-- `GET /api/v1/vehicles/years` - Obtener años
-- `GET /api/v1/vehicles/makes/{year}` - Obtener marcas
-- `GET /api/v1/vehicles/models/{year}/{make}` - Obtener modelos
-- `POST /api/v1/valuation` - Crear valuación
-- `POST /api/v1/appointment` - Crear cita
+- `POST /api/v1/auth/login` - Authentication
+- `GET /api/v1/vehicles/years` - Get years
+- `GET /api/v1/vehicles/makes/{year}` - Get makes
+- `GET /api/v1/vehicles/models/{year}/{make}` - Get models
+- `POST /api/v1/valuation` - Create valuation
+- `POST /api/v1/appointment` - Create appointment
 
-## 🎨 Personalización
+## 🎨 Customization
 
-### Cambiar el Puerto de Desarrollo
+### Change Development Port
 
-Edita `vite.config.js`:
+Edit `vite.config.js`:
 ```javascript
 server: {
-  port: 3000,  // Cambia este número
+  port: 3000,  // Change this number
   open: true
 }
 ```
 
-### Configurar la Base URL
+### Configure Base URL
 
-En `vite.config.js`:
+In `vite.config.js`:
 ```javascript
-base: '/',  // Cambia esto si despliegas en un subdirectorio
+base: '/',  // Change this if deploying to a subdirectory
 ```
 
-## 🐛 Solución de Problemas
+## 🐛 Troubleshooting
 
 ### Error: "Cannot find module"
-- Ejecuta `npm install` nuevamente
-- Elimina `node_modules` y `package-lock.json`, luego ejecuta `npm install`
+- Run `npm install` again
+- Delete `node_modules` and `package-lock.json`, then run `npm install`
 
 ### Error: "Port 3000 is already in use"
-- Cambia el puerto en `vite.config.js` o mata el proceso que usa el puerto:
+- Change the port in `vite.config.js` or kill the process using the port:
   ```bash
   # Windows
   netstat -ano | findstr :3000
@@ -278,63 +286,62 @@ base: '/',  // Cambia esto si despliegas en un subdirectorio
   lsof -ti:3000 | xargs kill
   ```
 
-### Error de conexión con la API
-- Verifica que el backend esté corriendo
-- Verifica la variable `VITE_API_BASE_URL` en `.env`
-- Revisa la consola del navegador para errores CORS
+### API connection error
+- Verify the backend is running
+- Verify the `VITE_API_BASE_URL` variable in `.env`
+- Check the browser console for CORS errors
 
-### El hot-reload no funciona
-- Reinicia el servidor de desarrollo
-- Limpia la caché del navegador
-- Verifica que no haya errores de sintaxis
+### Hot-reload not working
+- Restart the development server
+- Clear browser cache
+- Verify there are no syntax errors
 
-## 📝 Scripts Disponibles
+## 📝 Available Scripts
 
-- `npm run dev` - Inicia el servidor de desarrollo
-- `npm run build` - Construye la aplicación para producción
-- `npm run preview` - Previsualiza el build de producción
-- `npm run lint` - Ejecuta ESLint para verificar el código
+- `npm run dev` - Start the development server
+- `npm run build` - Build the application for production
+- `npm run preview` - Preview the production build
+- `npm run lint` - Run ESLint to check the code
 
-## 🚀 Despliegue
+## 🚀 Deployment
 
-### Build para Producción
+### Build for Production
 
-1. Asegúrate de que las variables de entorno en `.env` estén configuradas para producción
-2. Ejecuta el build:
+1. Make sure the environment variables in `.env` are configured for production
+2. Run the build:
    ```bash
    npm run build
    ```
-3. La carpeta `dist/` contendrá los archivos listos para desplegar
+3. The `dist/` folder will contain the files ready to deploy
 
-### Opciones de Despliegue
+### Deployment Options
 
-- **Vercel**: Conecta tu repositorio y despliega automáticamente
-- **Netlify**: Similar a Vercel, con soporte para SPA
-- **Hostinger**: Sube la carpeta `dist/` vía FTP
-- **Servidor propio**: Configura un servidor web (Nginx, Apache) para servir la carpeta `dist/`
+- **Vercel**: Connect your repository and deploy automatically
+- **Netlify**: Similar to Vercel, with SPA support
+- **Hostinger**: Upload the `dist/` folder via FTP
+- **Own server**: Configure a web server (Nginx, Apache) to serve the `dist/` folder
 
-> **Nota**: El proyecto está configurado para el dominio `sellyourcarrnow.com` según `vite.config.js`. Ajusta el `base` según tu dominio.
+> **Note**: The project is configured for the domain `sellyourcarrnow.com` according to `vite.config.js`. Adjust the `base` according to your domain.
 
-## 📊 Tracking y Analytics
+## 📊 Tracking and Analytics
 
-El proyecto incluye integración con Google Tag Manager (GTM) a través del componente `GTMProvider`. Asegúrate de configurar tu ID de GTM en el componente correspondiente.
+The project includes integration with Google Tag Manager (GTM) through the `GTMProvider` component. Make sure to configure your GTM ID in the corresponding component.
 
-## 🔒 Seguridad
+## 🔒 Security
 
-- Las variables de entorno sensibles deben estar en `.env` y nunca commitearse
-- El archivo `.env` está en `.gitignore` por defecto
-- En producción, usa HTTPS
-- Valida todas las entradas del usuario
+- Sensitive environment variables should be in `.env` and never committed
+- The `.env` file is in `.gitignore` by default
+- In production, use HTTPS
+- Validate all user inputs
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto es privado y de uso interno.
+This project is private and for internal use.
 
-## 👥 Contribuidores
+## 👥 Contributors
 
-Equipo de desarrollo WeBuyAnyCar USA
+WeBuyAnyCar USA Development Team
 
 ---
 
-**¿Necesitas ayuda?** Revisa la documentación de [React](https://react.dev/), [Vite](https://vitejs.dev/), o contacta al equipo de desarrollo.
-
+**Need help?** Check the documentation for [React](https://react.dev/), [Vite](https://vitejs.dev/), or contact the development team.

@@ -66,8 +66,8 @@ export const findNearbyStores = async (zipCode, retries = 2) => {
 
 export const createAppointment = async (appointmentData, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/Appointment/book`, appointmentData);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/Appointment/book`, appointmentData);
     return response.data;
   } catch (error) {
     console.error('Create appointment error:', error);
@@ -77,10 +77,10 @@ export const createAppointment = async (appointmentData, retries = 2) => {
 };
 
 
-export const cancelAppointment = async (customerVehicleId, phoneNumber , retries = 2) => {
+export const cancelAppointment = async (customerVehicleId, phoneNumber, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/appointment/cancel/${customerVehicleId}/${phoneNumber}`);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/appointment/cancel/${customerVehicleId}/${phoneNumber}`);
     return response.data;
   } catch (error) {
     console.error('Cancel appointment error:', error);
@@ -91,8 +91,8 @@ export const cancelAppointment = async (customerVehicleId, phoneNumber , retries
 
 export const rescheduleAppointment = async (existingAppointmentId, appointmentData, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/Appointment/${existingAppointmentId}/reschedule`, appointmentData);
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/Appointment/${existingAppointmentId}/reschedule`, appointmentData);
     return response.data;
   } catch (error) {
     console.error('Reschedule appointment error:', error);
@@ -101,10 +101,10 @@ export const rescheduleAppointment = async (existingAppointmentId, appointmentDa
   }
 }
 
-export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 2) => {
+export const createOnTime = async (customerVehicleId, branchId, targetPhoneNumber = "", retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber });
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber });
     return response.data;
   } catch (error) {
     console.error('Create OTP error:', error);
@@ -114,10 +114,10 @@ export const createOnTime  = async (customerVehicleId, branchId, targetPhoneNumb
 };
 
 
-export const sendSmS  = async (customerVehicleId, recipient, message = "", retries = 2) => {
+export const sendSmS = async (customerVehicleId, recipient, message = "", retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/Sms/send`, { customerVehicleId, recipient, message });
+    // SECURITY: httpClient automatically handles the token
+    const response = await httpClient.post(`/Sms/send`, { customerVehicleId, recipient, message });
     return response.data;
   } catch (error) {
     console.error('Send SMS error:', error);
@@ -133,7 +133,7 @@ export const sendSmS  = async (customerVehicleId, recipient, message = "", retri
  */
 export const bookAppointment = async (appointmentData, retries = 2) => {
   try {
-    const response = await httpClient.post('/api/appointments', appointmentData);
+    const response = await httpClient.post('/appointments', appointmentData);
     return response.data;
   } catch (error) {
     console.error('Book appointment error:', error);
@@ -151,7 +151,7 @@ export const bookAppointment = async (appointmentData, retries = 2) => {
  */
 export const getAvailableTimeSlots = async (date, locationId, retries = 2) => {
   try {
-    const response = await httpClient.get('/api/appointments/slots', {
+    const response = await httpClient.get('/appointments/slots', {
       params: { date, locationId },
     });
     return response.data;

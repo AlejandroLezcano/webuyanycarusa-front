@@ -19,7 +19,38 @@ import VINFlow from "./pages/VINFlow";
 import ManageAppointment from "./pages/ManageAppointment";
 import { AppProvider } from "./context/AppContext";
 
+import { useEffect, useState } from "react";
+import { authLogin } from "./services/auth";
+import { hasValidToken } from "./services/utils/tokenManager";
+
 function App() {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    const initAuth = async () => {
+      // Check if we have a valid token, if not, try to login
+      if (!hasValidToken()) {
+        try {
+          console.debug("Initializing App Authentication...");
+          await authLogin();
+        } catch (e) {
+          console.error("Auto-login failed:", e);
+        }
+      }
+      setIsReady(true);
+    };
+
+    initAuth();
+  }, []);
+
+  if (!isReady) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <AppProvider>
@@ -29,6 +60,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/home/welcome/:id" element={<HomePage />} />
+                <Route path="/welcome/home/:id" element={<HomePage />} />
                 <Route path="/manage-appointment/:id" element={<ManageAppointment />} />
                 <Route path="/updateappointment" element={<ManageAppointment />} />
                 <Route path="/sell-by-vin" element={<VINFlow />} />

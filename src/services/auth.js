@@ -1,53 +1,78 @@
-
 /**
- * Auth Service - Handles all auth-related API calls
+ * Auth Service - Handles all authentication-related API calls
  * Implements Single Responsibility Principle (SRP)
- * 
- * SEGURIDAD: Usa tokenManager para almacenamiento seguro en memoria
+ *
+ * SECURITY: Uses tokenManager for safe in-memory token storage
  */
 
-import axios from 'axios';
-import { setToken, clearToken } from './utils/tokenManager';
+import axios from "axios";
+import { setToken, clearToken } from "./utils/tokenManager";
 
-// External API endpoints
-const BASE_URL = 'http://localhost:5001/api';
+// Backend API Base URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+// Credentials pulled from .env (do NOT hardcode)
+const ENV_USERNAME = import.meta.env.VITE_AUTH_USERNAME;
+const ENV_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD;
 
 /**
- * Realiza login y almacena el token de forma segura
- * @param {string} email - Email del usuario
- * @param {string} password - Contraseña del usuario
- * @param {number} retries - Número de reintentos
- * @returns {Promise<Object>} Datos de respuesta del login
+ * Performs login using credentials from the environment
+ * and securely stores the JWT token.
+ *
+ * @param {number} retries - Number of retry attempts (default: 3)
+ * @returns {Promise<Object>} Login response payload
  */
-export const uathLogin = async (email, password, retries = 3) => {
+export const authLogin = async (retries = 3) => {
   try {
-    const headers = {
-      'Content-Type': 'application/json'
-    };
-    const response = await axios.post(`${BASE_URL}/Auth/login`, {
-      "username": "admin",
-      "password": "password123"
-    }, { headers });
-    
-    // SEGURIDAD: Almacenar token en memoria en lugar de sessionStorage
-    if (response.data.token) {
-      // Si el backend envía expiresIn, usarlo; sino, default 1 hora
-      const expiresIn = response.data.expiresIn || 3600;
-      setToken(response.data.token, expiresIn);
+    const response = await axios.post(
+      `${BASE_URL}/auth/login`,        // <-- FIXED (lowercase, correct route)
+      {
+        username: ENV_USERNAME,
+        password: ENV_PASSWORD,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const { token, expiration, expiresIn, expiresAt } = response.data;
+
+    if (!token) {
+      console.error("❌ Login response missing token:", response.data);
+      throw new Error("Token missing in login response");
     }
-    
+
+    // Compute expiration in seconds
+    const computedExpiresIn =
+      expiresIn ||
+      (expiresAt
+        ? Math.floor((new Date(expiresAt) - Date.now()) / 1000)
+        : expiration
+          ? Math.floor((new Date(expiration) - Date.now()) / 1000)
+          : 3600);
+
+    // Store token securely
+    setToken(token, computedExpiresIn);
+
     return response.data;
+
   } catch (error) {
-    console.error('Login error:', error);
-    if (retries === 0) throw error;
-    return uathLogin(email, password, retries - 1);
+    console.error("Login error:", error);
+
+    if (retries > 0) {
+      console.warn(`Retrying login... (${3 - retries + 1})`);
+      return authLogin(retries - 1);
+    }
+
+    throw error;
   }
 };
 
 /**
- * Realiza logout y limpia el token
+ * Logs out the user by clearing the stored JWT token.
  */
 export const logout = () => {
   clearToken();
-  // Aquí puedes agregar lógica adicional como llamar a un endpoint de logout
 };

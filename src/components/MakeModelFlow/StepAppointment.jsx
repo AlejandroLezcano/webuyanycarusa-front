@@ -104,7 +104,7 @@ const StepAppointment = ({
           phoneNumber={pendingAppointmentData.contactInfo?.telephone || pendingAppointmentData.phone || ''}
           onVerify={onOTPVerify}
           onResendCode={onOTPResend}
-          onChangePhone={() => { }}
+          onChangePhone={onOTPClose}
         />
       )}
 
@@ -156,6 +156,7 @@ const CalendarSection = ({
         selectedTime={selectedAppointment?.specificTime}
         selectedLocation={selectedAppointment}
         initialPhone={vehicleData?.phone || userInfo?.phone || ''}
+        userZipCode={vehicleData?.zipCode || userInfo?.zipCode || ''}
         onBookAppointment={onBookAppointment}
       />
     )}

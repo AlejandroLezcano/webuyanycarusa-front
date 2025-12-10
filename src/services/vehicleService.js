@@ -1,297 +1,309 @@
 /**
  * Vehicle Service - Handles all vehicle-related API calls
- * Implements Single Responsibility Principle (SRP)
+ * Implements SRP and relies on httpClient for JWT injection.
  */
 
-import axios from 'axios';
-import httpClient from './utils/httpClient';
-import { getCookie, random10Digits } from '../utils/helpers';
+import axios from "axios";
+import httpClient from "./utils/httpClient";
+import { getCookie, random10Digits } from "../utils/helpers";
 
+const NHTSA_BASE_URL = "https://vpic.nhtsa.dot.gov/api/vehicles";
 
-// External API endpoints
-const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
+/* ----------------------------------------------------------
+ * VIN DECODER (External API)
+ * --------------------------------------------------------*/
 
-/**
- * Decode VIN using NHTSA API
- * @param {string} vin - Vehicle Identification Number
- * @returns {Promise<Object>} Decoded vehicle data
- */
 export const decodeVIN = async (vin, retries = 2) => {
   try {
-    const response = await axios.get(
+    const resp = await axios.get(
       `${NHTSA_BASE_URL}/DecodeVinValues/${vin}?format=json`
     );
 
-    const data = response.data.Results[0];
+    const r = resp.data?.Results?.[0] ?? {};
 
     return {
       vin,
-      make: data.Make,
-      model: data.Model,
-      year: data.ModelYear,
-      trim: data.Trim,
-      bodyClass: data.BodyClass,
-      engineSize: data.DisplacementL,
-      fuelType: data.FuelTypePrimary,
-      transmission: data.TransmissionStyle,
-      driveType: data.DriveType,
-      vehicleType: data.VehicleType,
-      manufacturer: data.Manufacturer,
+      make: r.Make,
+      model: r.Model,
+      year: r.ModelYear,
+      trim: r.Trim,
+      bodyClass: r.BodyClass,
+      engineSize: r.DisplacementL,
+      fuelType: r.FuelTypePrimary,
+      transmission: r.TransmissionStyle,
+      driveType: r.DriveType,
+      vehicleType: r.VehicleType,
+      manufacturer: r.Manufacturer,
     };
-  } catch (error) {
-    console.error('VIN decode error:', error);
-    if (retries === 0) {
-      return null;
-    }
-    return decodeVIN(vin, retries - 1);
+  } catch (err) {
+    console.error("VIN decode error:", err);
+    return retries > 0 ? decodeVIN(vin, retries - 1) : null;
   }
 };
 
-/**
- * Decode license plate (mock implementation)
- * @param {string} plate - License plate number
- * @param {string} state - State code
- * @returns {Promise<Object>} Vehicle data from license plate
- */
+/* ----------------------------------------------------------
+ * LICENSE PLATE DECODER (Mock)
+ * --------------------------------------------------------*/
+
 export const decodeLicensePlate = async (plate, state, retries = 2) => {
   try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((res) => setTimeout(res, 1500));
 
-    // Mock response - Replace with actual API call
     return {
       plate,
       state,
-      make: 'Toyota',
-      model: 'Camry',
-      year: '2020',
-      vin: 'MOCK1234567890VIN',
-      color: 'Silver',
-      registrationStatus: 'Active',
+      make: "Toyota",
+      model: "Camry",
+      year: "2020",
+      vin: "MOCK1234567890VIN",
+      color: "Silver",
+      registrationStatus: "Active",
     };
-  } catch (error) {
-    console.error('License plate lookup error:', error);
-    if (retries === 0) {
-      return null;
-    }
-    return decodeLicensePlate(plate, state, retries - 1);
+  } catch (err) {
+    console.error("License plate lookup error:", err);
+    return retries > 0
+      ? decodeLicensePlate(plate, state, retries - 1)
+      : null;
   }
 };
+
+/* ----------------------------------------------------------
+ * VEHICLE ATTRIBUTES
+ * --------------------------------------------------------*/
 
 export const getVehicleMakes = async (year, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token desde tokenManager
-    const response = await httpClient.get(`/api/Vehicles/makes/${year.toString()}`);
-    return response.data.sort();
-  } catch (error) {
-    console.error('Get makes error:', error);
-    if (retries === 0) return [];
-    return getVehicleMakes(year, retries - 1);
+    const r = await httpClient.get(`/vehicles/makes/${year}`);
+    return r.data.sort();
+  } catch (err) {
+    console.error("Get makes error:", err);
+    return retries > 0 ? getVehicleMakes(year, retries - 1) : [];
   }
 };
+
+export const getModelsByMake = async (year, make, retries = 2) => {
+  try {
+    const r = await httpClient.get(`/vehicles/models/${year}/${make}`);
+    return r.data.sort();
+  } catch (err) {
+    console.error("Get models error:", err);
+    return retries > 0 ? getModelsByMake(year, make, retries - 1) : [];
+  }
+};
+
+export const getSeries = async (year, make, model, retries = 2) => {
+  try {
+    const r = await httpClient.get(`/vehicles/trims/${year}/${make}/${model}`);
+    return r.data.sort();
+  } catch (err) {
+    console.error("Get trims error:", err);
+    return retries > 0 ? getSeries(year, make, model, retries - 1) : [];
+  }
+};
+
+export const getVehicleYears = async (retries = 2) => {
+  try {
+    const r = await httpClient.get(`/vehicles/years`);
+    return r.data;
+  } catch (err) {
+    console.error("Get years error:", err);
+    return retries > 0 ? getVehicleYears(retries - 1) : [];
+  }
+};
+
+/* ----------------------------------------------------------
+ * CUSTOMER JOURNEY
+ * --------------------------------------------------------*/
 
 export const createVisitorID = async (retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(
-      `/api/Attribution/visitor`, 
-      { oldVisitorId: random10Digits()}
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Create customer journey error:', error);
-    if (retries === 0) return [];
-    return createVisitorID(retries - 1);
+    const r = await httpClient.post(`/attribution/visitor`, {
+      oldVisitorId: random10Digits(),
+    });
+    return r.data;
+  } catch (err) {
+    console.error("Create visitor ID error:", err);
+    return retries > 0 ? createVisitorID(retries - 1) : null;
   }
 };
 
-export const createCustomerJourney = async (year,make,model, visitId = 1, retries = 2) => {
+export const createCustomerJourney = async (
+  year,
+  make,
+  model,
+  visitId = 1,
+  retries = 2
+) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(
-      `/api/customer-journey`, 
-      {year: year, make: make, model: model, visitId: visitId}
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Create customer journey error:', error);
-    if (retries === 0) return [];
-    return createCustomerJourney(year, make, model, visitId, retries - 1);
+    const r = await httpClient.post(`/customer-journey`, {
+      year,
+      make,
+      model,
+      visitId,
+    });
+    return r.data;
+  } catch (err) {
+    console.error("Create customer journey error:", err);
+    return retries > 0
+      ? createCustomerJourney(year, make, model, visitId, retries - 1)
+      : null;
   }
 };
 
-
-export const createCustomerJourneyByPlate = async (  visitId, plateNumber, plateState ) => {
+export const createCustomerJourneyByPlate = async (
+  visitId,
+  plateNumber,
+  plateState
+) => {
   try {
-    visitId = visitId|| getCookie("visitorId");
+    visitId = visitId || getCookie("visitorId");
 
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(
-      `/api/customer-journey/plate`, 
-      {visitId: visitId, plateNumber: plateNumber, plateState: plateState}
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Create customer journey error:', error);
+    const r = await httpClient.post(`/customer-journey/plate`, {
+      visitId,
+      plateNumber,
+      plateState,
+    });
+
+    return r.data;
+  } catch (err) {
+    console.error("Customer journey by plate error:", err);
     return null;
   }
 };
 
-export const createCustomerJourneyByVin = async ( vin = 1 , visitId ) => {
+export const createCustomerJourneyByVin = async (vin, visitId) => {
   try {
-    visitId = visitId|| getCookie("visitorId");
+    visitId = visitId || getCookie("visitorId");
 
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(
-      `/api/customer-journey/vin`, 
-      {visitId: visitId, vin: vin}
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Create customer journey error:', error);
+    const r = await httpClient.post(`/customer-journey/vin`, {
+      visitId,
+      vin,
+    });
+
+    return r.data;
+  } catch (err) {
+    console.error("Customer journey by VIN error:", err);
     return null;
   }
 };
 
-
-export const CustomerDetailJourney = async (newData,customerJourneyId, retries = 2) => {
+export const CustomerDetailJourney = async (
+  newData,
+  customerJourneyId,
+  retries = 2
+) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-details`, newData);
-    return response.data;
-  } catch (error) {
-    console.error('Get makes error:', error);
-    if (retries === 0) return [];
-    return CustomerDetailJourney(newData, customerJourneyId, retries - 1);
+    const r = await httpClient.post(
+      `/customer-journey/${customerJourneyId}/vehicle-details`,
+      newData
+    );
+
+    return r.data;
+  } catch (err) {
+    console.error("Update customer journey details error:", err);
+    return retries > 0
+      ? CustomerDetailJourney(newData, customerJourneyId, retries - 1)
+      : [];
   }
 };
 
-export const UpdateCustomerJourney = async (newData,customerJourneyId, retries = 2) => {
-  if(newData.email === ""){
-    const data = JSON.parse(localStorage.getItem("dataUpdateCustomerJourney"));
+export const UpdateCustomerJourney = async (
+  newData,
+  customerJourneyId,
+  retries = 2
+) => {
+  if (!newData.email) {
+    const data = JSON.parse(localStorage.getItem("dataVehicleCondition")) || {};
+
+    // Map Frontend State (from LocalStorage) to Backend DTO
+    const mappedBaseData = {
+      mileage: parseInt(data.odometer?.toString().replace(/,/g, '') || data.mileage || '0'),
+      zipCode: data.zipCode,
+      email: data.email,
+      // Logic: If Clear Title is Yes, then NOT Financed. If Clear Title is No, then Financed.
+      isFinancedOrLeased: data.hasClearTitle === 'No',
+      carIsDriveable: data.runsAndDrives === 'Yes',
+      hasDamage: data.hasIssues === 'Yes',
+      hasBeenInAccident: data.hasAccident === 'Yes',
+      optionalPhoneNumber: data.phone || data.optionalPhoneNumber,
+      customerHasOptedIntoSmsMessages: data.receiveSMS || false,
+      captchaMode: 'true',
+      ce: false
+    };
 
     newData = {
-      ...newData,
-      ...(data ? data : {}),
-      optionalPhoneNumber: data?.phone == "" ? null : data?.phone,
+      ...mappedBaseData,
+      ...newData, // Allow newData to override base data
     };
   }
 
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.post(`/api/customer-journey/${customerJourneyId.toString()}/vehicle-condition`, newData);
-    return response.data;
-  } catch (error) {
-    console.error('Get makes error:', error);
-    if (retries === 0) return [];
-    return UpdateCustomerJourney(newData, customerJourneyId, retries - 1);
+    const r = await httpClient.post(
+      `/customer-journey/${customerJourneyId}/vehicle-condition`,
+      newData
+    );
+    return r.data;
+  } catch (err) {
+    console.error("Update customer journey error:", err);
+    return retries > 0
+      ? UpdateCustomerJourney(newData, customerJourneyId, retries - 1)
+      : [];
   }
 };
-
 
 export const GetCustomerJourney = async (customerJourneyId, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/customer-journey/${customerJourneyId.toString()}`);
-    return response.data;
-  } catch (error) {
-    console.error('Get makes error:', error);
-    if (retries === 0) return [];
-    return GetCustomerJourney(customerJourneyId, retries - 1);
+    const r = await httpClient.get(`/customer-journey/${customerJourneyId}`);
+    return r.data;
+  } catch (err) {
+    console.error("Get customer journey error:", err);
+    return retries > 0
+      ? GetCustomerJourney(customerJourneyId, retries - 1)
+      : [];
   }
 };
-
-
 
 export const GetCustomerJourneyByVisit = async (visitId, retries = 2) => {
   try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/customer-journey/${visitId.toString()}`);
-    return response.data;
-  } catch (error) {
-    console.error('Get makes error:', error);
-    if (retries === 0) return [];
-    return GetCustomerJourney(visitId, retries - 1);
+    const r = await httpClient.get(`/customer-journey/${visitId}`);
+    return r.data;
+  } catch (err) {
+    console.error("Get customer journey by visit error:", err);
+    return retries > 0
+      ? GetCustomerJourneyByVisit(visitId, retries - 1)
+      : [];
   }
 };
 
-/**
- * Get models by make using NHTSA API
- * @param {string} make - Vehicle make
- * @returns {Promise<string[]>} Array of vehicle models
- */
-export const getSeries = async (year,model,make, retries = 2) => {
-  try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/Vehicles/trims/${year.toString()}/${make.toString()}/${model.toString()}`);
-    return response.data.sort();
-  } catch (error) {
-    console.error('Get models error:', error);
-    if (retries === 0) return [];
-    return getSeries(year,model,make, retries - 1);
-  }
-};
-
-export const getModelsByMake = async (year,make, retries = 2) => {
-  try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get(`/api/Vehicles/models/${year.toString()}/${make.toString()}`);
-    return response.data.sort();
-  } catch (error) {
-    console.error('Get models error:', error);
-    if (retries === 0) return [];
-    return getModelsByMake(year,make, retries - 1);
-  }
-};
-
-/**
- * Get vehicle years (last 30 years)
- * @returns {string[]} Array of years
- */
-export const getVehicleYears = async (retries = 2) => {
-  try {
-    // SEGURIDAD: httpClient maneja automáticamente el token
-    const response = await httpClient.get('/api/Vehicles/years');
-    
-    return response.data;
-  } catch (error) {
-    console.error('Get years error:', error);
-    if (retries === 0) return [];
-    return getVehicleYears(retries - 1);
-  }
-};
-
+/* ----------------------------------------------------------
+ * IMAGE PROXY
+ * --------------------------------------------------------*/
 
 export const getImageVehicle = async (externalUrl, retries = 2) => {
   try {
-    // SEGURIDAD: Usar httpClient que maneja el token automáticamente
-    const response = await httpClient.get(
-      `/api/Vehicles/image?url=${encodeURIComponent(externalUrl)}`,
-      { responseType: 'blob' }
+    const r = await httpClient.get(
+      `/vehicles/image?url=${encodeURIComponent(externalUrl)}`,
+      { responseType: "blob" }
     );
 
-    const objectUrl = URL.createObjectURL(response.data);
-    return objectUrl;
-    
-  } catch (error) {
-    console.error('Get image error:', error);
-    if (retries === 0) return [];
-    return getImageVehicle(externalUrl, retries - 1);
+    return URL.createObjectURL(r.data);
+  } catch (err) {
+    console.error("Get vehicle image error:", err);
+    return retries > 0
+      ? getImageVehicle(externalUrl, retries - 1)
+      : null;
   }
 };
 
-/**
- * Get vehicle image URL
- * @param {string} make - Vehicle make
- * @param {string} model - Vehicle model
- * @param {string} year - Vehicle year
- * @returns {Promise<string>} Image URL
- */
+/* ----------------------------------------------------------
+ * LOCAL IMAGE PLACEHOLDERS
+ * --------------------------------------------------------*/
+
 export const getVehicleImage = async (make, model, year, retries = 2) => {
   try {
-    const basePath = import.meta.env.BASE_URL || '/';
+    const basePath = import.meta.env.BASE_URL || "/";
 
-    const vehicleImageMap = {
+    const map = {
       toyota: `${basePath}vehicles/toyota-camry.jpg`,
       honda: `${basePath}vehicles/honda-civic.jpg`,
       ford: `${basePath}vehicles/ford-f150.jpg`,
@@ -301,101 +313,90 @@ export const getVehicleImage = async (make, model, year, retries = 2) => {
       nissan: `${basePath}vehicles/nissan-altima.jpg`,
     };
 
-    const makeLower = make?.toLowerCase() || '';
-    const imageUrl =
-      vehicleImageMap[makeLower] || `${basePath}vehicles/default-car.jpg`;
+    await new Promise((res) => setTimeout(res, 400));
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    return map[make?.toLowerCase()] || `${basePath}vehicles/default-car.jpg`;
+  } catch (err) {
+    console.error("Get vehicle placeholder error:", err);
 
-    return imageUrl;
-  } catch (error) {
-    console.error('Get vehicle image error:', error);
     if (retries === 0) {
-      const basePath = import.meta.env.BASE_URL || '/';
+      const basePath = import.meta.env.BASE_URL || "/";
       return `${basePath}vehicles/default-car.jpg`;
     }
+
     return getVehicleImage(make, model, year, retries - 1);
   }
 };
 
-/**
- * Get component list for damage selection
- * @param {string} zoneId - Zone ID (unused in current implementation)
- * @returns {Promise<Array<{value: string, label: string}>>} Component options
- */
-export const getComponentList = async (zoneId, retries = 2) => {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 300));
+/* ----------------------------------------------------------
+ * DAMAGE / COMPONENTS
+ * --------------------------------------------------------*/
 
-    return [
-      { value: '9', label: 'Bumper' },
-      { value: '103', label: 'Bumper - Metal' },
-      { value: '23', label: 'Grille' },
-      { value: '4', label: 'Hood' },
-      { value: '28', label: 'Lights' },
-      { value: '60', label: 'Windshield' },
-    ];
-  } catch (error) {
-    console.error('Get component list error:', error);
-    if (retries === 0) return [];
-    return getComponentList(zoneId, retries - 1);
-  }
+export const getComponentList = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  return [
+    { value: "9", label: "Bumper" },
+    { value: "103", label: "Bumper - Metal" },
+    { value: "23", label: "Grille" },
+    { value: "4", label: "Hood" },
+    { value: "28", label: "Lights" },
+    { value: "60", label: "Windshield" },
+  ];
 };
 
-/**
- * Get fault type list for damage type selection
- * @param {string} componentId - Component ID (unused in current implementation)
- * @returns {Promise<Array<{value: string, label: string}>>} Fault type options
- */
-export const getFaultTypeList = async (componentId, retries = 2) => {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    return [
-      { value: '17', label: 'Dent' },
-      { value: '68', label: 'Dent - Large' },
-      { value: '36', label: 'Rust' },
-    ];
-  } catch (error) {
-    console.error('Get fault type list error:', error);
-    if (retries === 0) return [];
-    return getFaultTypeList(componentId, retries - 1);
-  }
+export const getFaultTypeList = async () => {
+  await new Promise((res) => setTimeout(res, 300));
+  return [
+    { value: "17", label: "Dent" },
+    { value: "68", label: "Dent - Large" },
+    { value: "36", label: "Rust" },
+  ];
 };
 
-/**
- * Cancel appointment
- * @param {string} customerVehicleId - Customer vehicle ID
- * @param {string} phoneNumber - Phone number
- * @returns {Promise<Object>} Response data
- */
-export const cancelAppointment = async (customerVehicleId, phoneNumber, retries = 2) => {
+/* ----------------------------------------------------------
+ * APPOINTMENTS
+ * --------------------------------------------------------*/
+
+export const cancelAppointment = async (
+  customerVehicleId,
+  phoneNumber,
+  retries = 2
+) => {
   try {
-    const response = await httpClient.delete(
-      `/api/Appointment/cancel/${customerVehicleId}/${phoneNumber}`
+    const r = await httpClient.delete(
+      `/appointment/cancel/${customerVehicleId}/${phoneNumber}`
     );
-    return response.data;
-  } catch (error) {
-    console.error('Cancel appointment error:', error);
-    if (retries === 0) throw error;
-    return cancelAppointment(customerVehicleId, phoneNumber, retries - 1);
+    return r.data;
+  } catch (err) {
+    console.error("Cancel appointment error:", err);
+    return retries > 0
+      ? cancelAppointment(customerVehicleId, phoneNumber, retries - 1)
+      : null;
   }
 };
+
+/* ----------------------------------------------------------
+ * EXPORT SERVICE OBJECT
+ * --------------------------------------------------------*/
 
 export const vehicleService = {
   decodeVIN,
   decodeLicensePlate,
   getVehicleMakes,
   getModelsByMake,
+  getSeries,
+  getVehicleYears,
+  getImageVehicle,
+  getVehicleImage,
+  createVisitorID,
   createCustomerJourney,
+  createCustomerJourneyByPlate,
+  createCustomerJourneyByVin,
   UpdateCustomerJourney,
   CustomerDetailJourney,
-  getVehicleYears,
-  getVehicleImage,
+  GetCustomerJourney,
+  GetCustomerJourneyByVisit,
   getComponentList,
   getFaultTypeList,
-  getSeries,
   cancelAppointment,
 };
-
