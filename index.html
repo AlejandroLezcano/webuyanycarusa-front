@@ -7,20 +7,7 @@
   <meta http-equiv="content-language" content="en-us" />
 
   <!-- SEGURIDAD: Content Security Policy - COMMENTED OUT FOR LOCAL DEV -->
-  <!--
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://widget.trustpilot.com http://widget.trustpilot.com https://fonts.googleapis.com;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: blob: https: http:;
-      font-src 'self' https://fonts.gstatic.com;
-      connect-src 'self' http://localhost:5000 http://localhost:* https://vpic.nhtsa.dot.gov https://www.googletagmanager.com https://*.ngrok-free.app https://*.ngrok.io https://widget.trustpilot.com https://api.trustpilot.com;
-      frame-src 'self' https://www.googletagmanager.com https://widget.trustpilot.com;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-    " />
-    -->
+  <!-- Content Security Policy meta tag is commented out for local development -->
 
   <!-- Primary Meta Tags -->
   <title>We Buy Any Car® | Sell My Car | Free Online Valuation</title>
@@ -92,8 +79,6 @@
   <script type="text/javascript" src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
     async></script>
   <!-- End TrustBox script -->
-  <script type="module" crossorigin src="/assets/index-ClWL0Eam.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DOVIWQ6A.css">
 </head>
 
 <body>
@@ -104,6 +89,7 @@
   <!-- End Google Tag Manager (noscript) -->
 
   <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 
 </html>

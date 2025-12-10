@@ -1,0 +1,61 @@
+/* Univers Font Family - New files provided by user */
+
+@font-face {
+  font-family: 'Univers';
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot');
+  /* IE9 Compat Modes */
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot?#iefix') format('embedded-opentype'),
+    /* IE6-IE8 */
+    url('/fonts/62ca5e52-a23b-4365-b69a-9e06b00a8192.woff') format('woff'),
+    /* Modern Browsers */
+    url('/fonts/09c37d12-f914-4b7f-b258-9f873abd140d.ttf') format('truetype'),
+    /* Safari, Android, iOS */
+    url('/fonts/0984933b-1331-49c4-8af8-cf215c6be707.svg#Univers') format('svg');
+  /* Legacy iOS */
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 
+   Mapping bold requests to the same font if no specific bold font is provided,
+   letting the browser simulate bold (synthetic bold) or just use the same face 
+   depending on need. For strictly enforcing *this* file, we define it for 
+   other weights too to ensure no fallback to system fonts.
+*/
+
+@font-face {
+  font-family: 'Univers';
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot');
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/62ca5e52-a23b-4365-b69a-9e06b00a8192.woff') format('woff'),
+    url('/fonts/09c37d12-f914-4b7f-b258-9f873abd140d.ttf') format('truetype'),
+    url('/fonts/0984933b-1331-49c4-8af8-cf215c6be707.svg#Univers') format('svg');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Univers';
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot');
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/62ca5e52-a23b-4365-b69a-9e06b00a8192.woff') format('woff'),
+    url('/fonts/09c37d12-f914-4b7f-b258-9f873abd140d.ttf') format('truetype'),
+    url('/fonts/0984933b-1331-49c4-8af8-cf215c6be707.svg#Univers') format('svg');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Univers';
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot');
+  src: url('/fonts/636837b4-3147-45f2-b616-7b53b251258b.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/62ca5e52-a23b-4365-b69a-9e06b00a8192.woff') format('woff'),
+    url('/fonts/09c37d12-f914-4b7f-b258-9f873abd140d.ttf') format('truetype'),
+    url('/fonts/0984933b-1331-49c4-8af8-cf215c6be707.svg#Univers') format('svg');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
