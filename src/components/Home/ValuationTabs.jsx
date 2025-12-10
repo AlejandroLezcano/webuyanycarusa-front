@@ -49,8 +49,22 @@ const ValuationTabs = ({
         console.error("Error fetching years:", error);
       });
     }
-    
   }, []);
+
+  // Reset inputs when switching tabs
+  useEffect(() => {
+    setSelectedYear("");
+    setSelectedMake("");
+    setSelectedModel("");
+    setMakes([]);
+    setModels([]);
+    
+    setVinValue("");
+    setVinError(null);
+    
+    setPlateValue("");
+    setPlateState("");
+  }, [activeTab]);
 
   const loadMakes = async (year) => {
     const makesData = await getVehicleMakes(year);
