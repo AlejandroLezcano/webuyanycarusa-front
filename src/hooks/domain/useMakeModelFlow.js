@@ -29,10 +29,13 @@ const STEP_NAMES = {
  * @returns {number} Step number
  */
 const getStepFromPath = (path, vehicleData) => {
-  if (path.includes('/secure/bookappointment')) return 4;
-  if (path.includes('/valuation/vehiclecondition')) return 3;
-  if (path.includes('/valuation/vehicledetails')) return 2;
-  if (path === '/valuation' || path === '/sell-by-make-model') return 1;
+  // Use window.location.pathname as fallback for more reliable path detection
+  const effectivePath = path || window.location.pathname;
+  
+  if (effectivePath.includes('/secure/bookappointment')) return 4;
+  if (effectivePath.includes('/valuation/vehiclecondition')) return 3;
+  if (effectivePath.includes('/valuation/vehicledetails')) return 2;
+  if (effectivePath === '/valuation' || effectivePath === '/sell-by-make-model') return 1;
 
   // Fallback based on data
   const hasInitialData = vehicleData?.year && vehicleData?.make && vehicleData?.model;
@@ -66,7 +69,8 @@ export function useMakeModelFlow() {
   const [customerJourneyId, setCustomerJourneyId] = useState(() => {
     return uid || getUidFromPath() || localStorage.getItem('customerJourneyId') || '';
   });
-  const [step, setStep] = useState(() => getStepFromPath(location.pathname, vehicleData));
+  // Use window.location.pathname for initial step to ensure correct value on mobile reload
+  const [step, setStep] = useState(() => getStepFromPath(window.location.pathname, vehicleData));
 
   // Keep customerJourneyId in sync with URL param - always prioritize URL
   useEffect(() => {
@@ -100,14 +104,49 @@ export function useMakeModelFlow() {
     const basePath = STEP_PATHS[newStep] || '/valuation';
     const targetPath = `${basePath}/${id}`;
 
-    if (location.pathname !== targetPath) {
+    console.log('🧭 navigateToStep called:', {
+      newStep,
+      currentPath: location.pathname,
+      targetPath,
+      id,
+      isMobile: window.innerWidth < 768
+    });
+
+    // Check if we're already on the correct step URL - if so, don't navigate
+    const currentStep = getStepFromPath(location.pathname, vehicleData);
+    if (currentStep === newStep && location.pathname.includes(id)) {
+      console.log('✅ Already on correct step, skipping navigation');
       setStep(newStep);
-      navigate(targetPath, { replace: true });
+      return;
+    }
+
+    if (location.pathname !== targetPath) {
+      console.log('🚀 Navigating from', location.pathname, 'to', targetPath);
+      setStep(newStep);
+      
+      // For mobile, use window.location directly as React Router seems to have issues
+      const isMobile = window.innerWidth < 768;
+      
+      if (isMobile) {
+        console.log('� vMobile detected, using window.location for navigation');
+        window.location.href = targetPath;
+      } else {
+        // Desktop: use React Router
+        try {
+          navigate(targetPath, { replace: true });
+          console.log('🖥️ Desktop: React Router navigate called');
+        } catch (error) {
+          console.error('❌ React Router navigate failed:', error);
+          window.location.href = targetPath;
+        }
+      }
+      
       trackValuationStep(newStep, STEP_NAMES[newStep] || `Step ${newStep}`, vehicleData);
     } else {
+      console.log('✅ Already at target path, just updating step state');
       setStep(newStep);
     }
-  }, [uid, customerJourneyId, location.pathname, navigate, vehicleData]);
+  }, [uid, getUidFromPath, customerJourneyId, location.pathname, vehicleData, navigate]);
 
   /**
    * Go to next step
