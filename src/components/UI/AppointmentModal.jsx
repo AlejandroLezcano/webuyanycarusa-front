@@ -468,20 +468,22 @@ const AppointmentModal = ({
                         error={errors.addressLine2}
                         id="appointment-modal-address-line-2-input"
                       />
+                  
+                      <div className="flex items-center gap-4">
+                        <Input
+                          label="City"
+                          placeholder="Enter City"
+                          width="50%"
+                          value={formData.city}
+                          onChange={(e) =>
+                            handleInputChange("city", e.target.value)
+                          }
+                          error={errors.city}
+                          id="appointment-modal-city-input"
+                        />
 
-                      <Input
-                        label="City"
-                        placeholder="Enter City"
-                        width="50%"
-                        value={formData.city}
-                        onChange={(e) =>
-                          handleInputChange("city", e.target.value)
-                        }
-                        error={errors.city}
-                        id="appointment-modal-city-input"
-                      />
-
-                      <label className="text-sm text-gray-700 cursor-pointer">ZIP Code: {zipCode}</label>
+                        <label className="text-sm text-gray-700 cursor-pointer pt-8"> {zipCode}</label>
+                      </div>
 
                     </>
                   )}
