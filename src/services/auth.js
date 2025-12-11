@@ -5,11 +5,8 @@
  * SECURITY: Uses tokenManager for safe in-memory token storage
  */
 
-import axios from "axios";
+import { httpClient } from "./utils/httpClient";
 import { setToken, clearToken } from "./utils/tokenManager";
-
-// Backend API Base URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 // Credentials pulled from .env (do NOT hardcode)
 const ENV_USERNAME = import.meta.env.VITE_AUTH_USERNAME;
@@ -24,18 +21,11 @@ const ENV_PASSWORD = import.meta.env.VITE_AUTH_PASSWORD;
  */
 export const authLogin = async (retries = 3) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/auth/login`,        // <-- FIXED (lowercase, correct route)
-      {
-        username: ENV_USERNAME,
-        password: ENV_PASSWORD,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // Uses httpClient which already has the Base URL configured
+    const response = await httpClient.post('/auth/login', {
+      username: ENV_USERNAME,
+      password: ENV_PASSWORD,
+    });
 
     const { token, expiration, expiresIn, expiresAt } = response.data;
 
