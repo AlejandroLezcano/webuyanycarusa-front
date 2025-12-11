@@ -40,7 +40,7 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
   const handleOtpChange = (index, value) => {
     // Only allow single digit
     if (value.length > 1) return;
-    
+
     // Only allow numbers
     if (value && !/^\d$/.test(value)) return;
 
@@ -62,38 +62,60 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
 
   const handleKeyDown = (index, e) => {
     // Handle backspace
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.key === "Backspace") {
+      if (!otp[index] && index > 0) {
+        // If empty, move to previous input and delete its value
+        const newOtp = [...otp];
+        newOtp[index - 1] = "";
+        setOtp(newOtp);
+        inputRefs.current[index - 1]?.focus();
+      }
+    }
+
+    // Handle delete
+    if (e.key === "Delete") {
+      // Allow default behavior but ensure we stay focused
+    }
+
+    // Handle arrows
+    if (e.key === "ArrowLeft" && index > 0) {
+      e.preventDefault();
       inputRefs.current[index - 1]?.focus();
     }
-    // Handle paste
-    if (e.key === "v" && (e.ctrlKey || e.metaKey)) {
+
+    if (e.key === "ArrowRight" && index < 5) {
       e.preventDefault();
-      navigator.clipboard.readText().then((text) => {
-        const digits = text.replace(/\D/g, "").slice(0, 6);
-        if (digits.length === 6) {
-          const newOtp = digits.split("");
-          setOtp(newOtp);
-          inputRefs.current[5]?.focus();
-        }
-      });
+      inputRefs.current[index + 1]?.focus();
     }
+
+    // Handle paste via shortcut (CMD+V / CTRL+V) is handled by onPaste
   };
 
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text");
     const digits = pastedData.replace(/\D/g, "").slice(0, 6);
-    if (digits.length === 6) {
-      const newOtp = digits.split("");
+
+    if (digits.length > 0) {
+      const newOtp = [...otp];
+      for (let i = 0; i < digits.length; i++) {
+        newOtp[i] = digits[i];
+      }
       setOtp(newOtp);
       setError("");
-      inputRefs.current[5]?.focus();
+
+      // Focus the next input after the pasted ones
+      const nextIndex = Math.min(digits.length, 5);
+      inputRefs.current[nextIndex]?.focus();
+
+      // If we have full 6 digits, we might want to trigger submit automatically
+      // if (digits.length === 6) handleSubmit(digits);
     }
   };
 
   const handleSubmit = async (otpValue = null) => {
     const code = otpValue || otp.join("");
-    
+
     if (code.length !== 6) {
       setError("Please enter the 6-digit code");
       return;
@@ -109,27 +131,25 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
 
     setIsLoading(true);
     setError("");
-    
+
     try {
       if (onVerify) {
         // Call onVerify and wait for result
         const result = await onVerify(code);
-        
+
         // If verification was successful (result === true), close modal immediately
         // Don't update any state - just close to avoid showing error message
         if (result === true) {
           onClose(); // Close modal on success - state will be reset by useEffect
           return; // Exit immediately without updating any state
         } else {
-          setTimeout(() => {
-            // Only reach here if verification failed
-            // Verification failed - show error and stay on modal
-            setIsLoading(false);
-            setError("Invalid code. Please try again.");
-            // Clear OTP inputs to allow retry
-            setOtp(["", "", "", "", "", ""]);
-            inputRefs.current[0]?.focus();
-          }, 5000)
+          // Only reach here if verification failed
+          // Verification failed - show error and stay on modal
+          setIsLoading(false);
+          setError("Invalid code. Please try again.");
+          // Clear OTP inputs to allow retry
+          setOtp(["", "", "", "", "", ""]);
+          inputRefs.current[0]?.focus();
         }
       } else {
         setIsLoading(false);
@@ -225,13 +245,14 @@ const OTPModal = ({ isOpen, onClose, phoneNumber, onVerify, onResendCode, onChan
                   <input
                     key={index}
                     ref={(el) => (inputRefs.current[index] = el)}
-                    type="number"
+                    type="text"
+                    pattern="[0-9]*"
                     inputMode="numeric"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                    // onKeyDown={(e) => handleKeyDown(index, e)}
-                    // onPaste={index === 0 ? handlePaste : undefined}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
                     className="text-center text-2xl font-bold border border-gray-300 rounded focus:border-primary-600 focus:ring-2 focus:ring-primary-200 outline-none transition-all bg-white md:w-14 md:h-14"
                     style={{ width: "2.5rem", textAlign: "center", height: "2.5rem", fontSize: "1.5rem", padding: "0" }}
                     aria-label={`Please enter OTP character ${index + 1}`}
