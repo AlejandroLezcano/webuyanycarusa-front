@@ -43,13 +43,7 @@ function App() {
     initAuth();
   }, []);
 
-  if (!isReady) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <div>Loading...</div>
-      </div>
-    );
-  }
+
 
   return (
     <ErrorBoundary>
