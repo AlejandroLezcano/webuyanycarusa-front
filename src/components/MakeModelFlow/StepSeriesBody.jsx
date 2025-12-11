@@ -67,6 +67,15 @@ const StepSeriesBody = ({
     }
   }, [selectedBodyType, setValue]);
 
+  // Auto-select series if only one option available
+  useEffect(() => {
+    if (seriesOptions.length === 1 && !selectedSeries) {
+      const seriesValue = seriesOptions[0].value || seriesOptions[0];
+      setValue('series', seriesValue);
+      onSeriesChange(seriesValue);
+    }
+  }, [seriesOptions, selectedSeries, setValue, onSeriesChange]);
+
   const handleSeriesSelect = (e) => {
     const value = e.target.value;
     setValue('series', value);
@@ -105,17 +114,32 @@ const StepSeriesBody = ({
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-          <Select
-            label="Select Series"
-            options={seriesOptions}
-            placeholder="Select Series"
-            error={errors.series?.message}
-            value={selectedSeries}
-            disabled={loading || isSeriesDisabled}
-            id="series-select"
-            {...register('series')}
-            onChange={handleSeriesSelect}
-          />
+          {/* Series - Show as text if only 1 option, otherwise dropdown */}
+          {seriesOptions.length === 1 ? (
+            <div className="w-full">
+              <label className="label hidden md:block">Select Series</label>
+              <p
+                className="text-gray-900 font-bold"
+                style={{ fontSize: '18px', padding: '0.75rem 0', paddingLeft: '1.25rem' }}
+                id="series-text"
+              >
+                {seriesOptions[0].label || seriesOptions[0]}
+              </p>
+              <input type="hidden" name="series" value={seriesOptions[0].value || seriesOptions[0]} />
+            </div>
+          ) : (
+            <Select
+              label="Select Series"
+              options={seriesOptions}
+              placeholder="Select Series"
+              error={errors.series?.message}
+              value={selectedSeries}
+              disabled={loading || isSeriesDisabled}
+              id="series-select"
+              {...register('series')}
+              onChange={handleSeriesSelect}
+            />
+          )}
 
           <Select
             label="Select Body Type"
