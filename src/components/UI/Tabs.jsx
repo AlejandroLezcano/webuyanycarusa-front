@@ -33,14 +33,14 @@ const Tabs = ({
   return (
     <div className={clsx("w-full", className)}>
       {/* Tab Navigation: Smaller white container, centered */}
-      <div className="flex justify-center mb-6 md:mb-8">
-        <div className="flex gap-1 sm:gap-2 md:gap-3 p-2 md:p-3 rounded-2xl md:rounded-3xl bg-white shadow-md w-full max-w-2xl md:w-auto md:inline-flex">
+      <div className="flex justify-center mb-6 md:mb-8 px-4">
+        <div className="flex gap-1 sm:gap-2 md:gap-3 p-2 md:p-3 rounded-2xl md:rounded-3xl bg-white shadow-md w-full max-w-4xl md:w-auto md:inline-flex justify-center">
           {tabs.map((tab, index) =>
             activeTab === index ? (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="relative px-2 sm:px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs sm:text-sm md:text-base transition-all duration-500 flex-1 sm:flex-shrink-0 flex items-center justify-center gap-1 sm:gap-2 text-white min-w-0"
+                className="relative px-3 sm:px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs sm:text-sm md:text-base transition-all duration-500 flex items-center justify-center gap-1 sm:gap-2 text-white whitespace-nowrap flex-1 md:flex-none min-w-fit"
                 style={{
                   background:
                     "linear-gradient(135deg, #20B24D 0%, #1a9a3e 50%, #158234 100%)",
@@ -52,17 +52,17 @@ const Tabs = ({
                 id={`${tab.id}-tab-active-button`}
               >
                 {tab.icon && <tab.icon className="hidden md:block w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 flex-shrink-0" />}
-                <span className="truncate sm:whitespace-nowrap">{tab.label}</span>
+                <span className="whitespace-nowrap text-center">{tab.label}</span>
               </motion.button>
             ) : (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold text-xs sm:text-sm md:text-base transition-colors duration-300 flex-1 sm:flex-shrink-0 text-gray-700 hover:text-gray-900 min-w-0"
+                className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-semibold text-xs sm:text-sm md:text-base transition-colors duration-300 text-gray-700 hover:text-gray-900 whitespace-nowrap flex-1 md:flex-none min-w-fit"
                 id={`${tab.id}-tab-inactive-button`}
               >
                 {tab.icon && <tab.icon className="hidden md:block w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 flex-shrink-0" />}
-                <span className="truncate sm:whitespace-nowrap">{tab.label}</span>
+                <span className="whitespace-nowrap text-center">{tab.label}</span>
               </button>
             ),
           )}
