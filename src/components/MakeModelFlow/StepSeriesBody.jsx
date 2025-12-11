@@ -143,7 +143,7 @@ const StepSeriesBody = ({
           <Select
             label="Select Body Type"
             options={bodyTypeOptions}
-            placeholder="Select body type"
+            placeholder="Select Body Type"
             error={errors.bodyType?.message}
             value={selectedBodyType}
             disabled={loading || isBodyTypeDisabled || !watchSeries}
