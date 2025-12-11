@@ -34,7 +34,7 @@ httpClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      console.debug("⚠ No token available — request may fail if protected.");
+      console.debug('[API] No token available - request may fail if protected');
     }
 
     return config;
@@ -54,33 +54,37 @@ httpClient.interceptors.response.use(
 
       switch (status) {
         case 401:
-          console.error("❌ Unauthorized — token invalid or expired");
+          console.debug('[API] Unauthorized - token invalid or expired');
           clearToken();
           break;
 
         case 403:
-          console.error("🚫 Forbidden — insufficient permissions");
+          console.debug('[API] Forbidden - insufficient permissions');
           break;
 
         case 404:
-          console.error("🔎 Not found:", data?.message || "");
+          console.debug('[API] Not found:', data?.message || '');
+          break;
+
+        case 429:
+          console.debug('[API] Rate limited');
           break;
 
         case 500:
-          console.error("💥 Internal Server Error");
+          console.debug('[API] Server error');
           break;
 
         default:
-          console.error("API Error:", data?.message || error.message);
+          console.debug('[API] Error:', status, data?.message || error.message);
       }
     }
     // No response received (network dropped, CORS blocked, API offline)
     else if (error.request) {
-      console.error("🌐 Network error (no response):", error.message);
+      console.debug('[API] Network error:', error.message);
     }
     // Client exception
     else {
-      console.error("Unexpected client error:", error.message);
+      console.debug('[API] Unexpected error:', error.message);
     }
 
     return Promise.reject(error);
