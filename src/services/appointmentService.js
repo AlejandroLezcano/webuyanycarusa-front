@@ -70,7 +70,7 @@ export const createAppointment = async (appointmentData, retries = 2) => {
     const response = await httpClient.post(`/Appointment/book`, appointmentData);
     return response.data;
   } catch (error) {
-    console.error('Create appointment error:', error);
+    console.debug('[Appointment] Create error:', error.message);
     if (retries === 0) throw error;
     return createAppointment(appointmentData, retries - 1);
   }
@@ -83,7 +83,7 @@ export const cancelAppointment = async (customerVehicleId, phoneNumber, retries 
     const response = await httpClient.post(`/appointment/cancel/${customerVehicleId}/${phoneNumber}`);
     return response.data;
   } catch (error) {
-    console.error('Cancel appointment error:', error);
+    console.debug('[Appointment] Cancel error:', error.message);
     if (retries === 0) throw error;
     return cancelAppointment(customerVehicleId, phoneNumber, retries - 1);
   }
@@ -95,7 +95,7 @@ export const rescheduleAppointment = async (existingAppointmentId, appointmentDa
     const response = await httpClient.post(`/Appointment/${existingAppointmentId}/reschedule`, appointmentData);
     return response.data;
   } catch (error) {
-    console.error('Reschedule appointment error:', error);
+    console.debug('[Appointment] Reschedule error:', error.message);
     if (retries === 0) throw error;
     return rescheduleAppointment(existingAppointmentId, appointmentData, retries - 1);
   }
@@ -107,7 +107,7 @@ export const createOnTime = async (customerVehicleId, branchId, targetPhoneNumbe
     const response = await httpClient.post(`/scheduling/otp/request`, { customerVehicleId, branchId, targetPhoneNumber });
     return response.data;
   } catch (error) {
-    console.error('Create OTP error:', error);
+    console.debug('[OTP] Request error:', error.message);
     if (retries === 0) throw error;
     return createOnTime(customerVehicleId, branchId, targetPhoneNumber, retries - 1);
   }
