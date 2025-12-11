@@ -226,8 +226,10 @@ const MakeModelFlow = () => {
   }, [trackSubmission, updateSeriesBody, updateVehicleData, vehicleData, navigateToStep]);
 
   // Auto-advance when both series and body type have only one option
+  // Only auto-advance if URL actually indicates step 2 (not if step state is temporarily wrong)
   useEffect(() => {
-    if (step === 2 && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
+    const isStep2Url = window.location.pathname.includes('/valuation/vehicledetails');
+    if (step === 2 && isStep2Url && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
       // Small delay to ensure UI updates are visible
       const timer = setTimeout(() => {
         handleSeriesBodySubmit({
@@ -633,9 +635,14 @@ const MakeModelFlow = () => {
 
   // Step 1: Show ValuationTabs
   // Only show step 1 if URL actually indicates step 1 (not if step state is temporarily wrong)
-  const isStep1Url = window.location.pathname === '/valuation' || 
-                     window.location.pathname === '/sell-by-make-model' ||
-                     window.location.pathname.match(/^\/valuation\/[^/]+$/);
+  // Step 1 URLs: /valuation, /sell-by-make-model, or /valuation/{uuid} (without vehicledetails/vehiclecondition/bookappointment)
+  const currentPath = window.location.pathname;
+  const isStep1Url = currentPath === '/valuation' || 
+                     currentPath === '/sell-by-make-model' ||
+                     (currentPath.startsWith('/valuation/') && 
+                      !currentPath.includes('/vehicledetails') && 
+                      !currentPath.includes('/vehiclecondition') &&
+                      !currentPath.includes('/bookappointment'));
   
   if (step === 1 && isStep1Url) {
     return (
@@ -669,25 +676,34 @@ const MakeModelFlow = () => {
         ref={contentRef}
         style={{ maxWidth: '100%', boxSizing: 'border-box' }}
       >
+        {/* Determine actual step from URL to prevent rendering wrong content */}
+        {(() => {
+          const urlStep = currentPath.includes('/secure/bookappointment') ? 4 :
+                          currentPath.includes('/valuation/vehiclecondition') ? 3 :
+                          currentPath.includes('/valuation/vehicledetails') ? 2 : step;
+          const effectiveStep = urlStep;
+          
+          return (
+            <>
         {/* Header */}
-        {step !== 4 && <FlowHeader />}
+        {effectiveStep !== 4 && <FlowHeader />}
 
         {/* Progress Bar */}
-        {step !== 4 && (
-          <ProgressBar currentStep={step} totalSteps={4} steps={PROGRESS_STEPS} />
+        {effectiveStep !== 4 && (
+          <ProgressBar currentStep={effectiveStep} totalSteps={4} steps={PROGRESS_STEPS} />
         )}
 
         <div
-          className={`grid ${step === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-0 lg:gap-12 container-cards-info w-full`}
+          className={`grid ${effectiveStep === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-0 lg:gap-12 container-cards-info w-full`}
           style={{ maxWidth: '100%', boxSizing: 'border-box' }}
         >
           {/* Form Section */}
           <div
-            className={step === 4 ? 'w-full max-w-7xl mx-auto' : ''}
+            className={effectiveStep === 4 ? 'w-full max-w-7xl mx-auto' : ''}
             style={{ maxWidth: '100%', boxSizing: 'border-box' }}
           >
             {/* Step 2: Series & Body */}
-            {step === 2 && (
+            {effectiveStep === 2 && (
               <StepSeriesBody
                 vehicleData={vehicleData}
                 seriesOptions={vehicleSeries.seriesOptions}
@@ -705,7 +721,7 @@ const MakeModelFlow = () => {
             )}
 
             {/* Step 3: Vehicle Condition */}
-            {step === 3 && !showAdditionalQuestions && (
+            {effectiveStep === 3 && !showAdditionalQuestions && (
               <StepVehicleCondition
                 vehicleData={vehicleData}
                 userInfo={userInfo}
@@ -716,7 +732,7 @@ const MakeModelFlow = () => {
             )}
 
             {/* Additional Questions */}
-            {showAdditionalQuestions && (
+            {effectiveStep === 3 && showAdditionalQuestions && (
               <AdditionalQuestionsForm
                 vehicleData={vehicleData}
                 damageForm={damageForm}
@@ -734,7 +750,7 @@ const MakeModelFlow = () => {
             />
 
             {/* Step 4: Appointment */}
-            {step === 4 && (
+            {effectiveStep === 4 && (
               <StepAppointment
                 vehicleData={vehicleData}
                 userInfo={userInfo}
@@ -772,7 +788,7 @@ const MakeModelFlow = () => {
           </div>
 
           {/* Preview Section - Hidden in step 4 */}
-          {step !== 4 && (
+          {effectiveStep !== 4 && (
             <div>
               <VehiclePreview
                 vehicle={{
@@ -787,6 +803,9 @@ const MakeModelFlow = () => {
             </div>
           )}
         </div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
