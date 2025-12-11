@@ -60,7 +60,7 @@ const transformBranchData = (branch, type = 'branch') => {
     branchManagerName: '',
     branchName: branch.branchName,
     branchPhone: branch.telephone,
-    city: branch.city,
+    city: branch.city || branch.branchLocation?.city || '',
     distanceMiles: branch.distanceInMiles || branch.distance || branch.valDistance || branch.miles || 0,
     latitude: '',
     longitude: '',

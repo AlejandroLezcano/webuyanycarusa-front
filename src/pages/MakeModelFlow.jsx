@@ -451,7 +451,7 @@ const MakeModelFlow = () => {
         email: vehicleData.email,
         address1: appointmentData?.contactInfo?.addressLine1 || null,
         address2: appointmentData?.contactInfo?.addressLine2 || null,
-        city: appointmentData?.contactInfo?.city || appointmentData.location,
+        city: appointmentData?.contactInfo?.city || branchSelect?.city || appointmentData.location,
         model: vehicleData.model,
         visitId: vehicleData.vid,
         otpCode: appointmentData.otpCode,
