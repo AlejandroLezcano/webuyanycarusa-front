@@ -8,19 +8,19 @@ import { random3Digits, formatPhone } from "../../utils/helpers";
 import { createOnTime, sendSmS } from "../../services/appointmentService";
 import { UpdateCustomerJourney } from "../../services/vehicleService";
 
-const AppointmentModal = ({ 
-  isOpen, 
-  onClose, 
-  selectedSlot, 
-  onConfirm, 
-  initialPhone = "", 
-  initialReceiveSMS = false, 
-  vehicleData, 
+const AppointmentModal = ({
+  isOpen,
+  onClose,
+  selectedSlot,
+  onConfirm,
+  initialPhone = "",
+  initialReceiveSMS = false,
+  vehicleData,
   branchesHours,
   customerJourneyId }) => {
 
-  
-  const [step, setStep] = useState(1); 
+
+  const [step, setStep] = useState(1);
   const [selectedTime, setSelectedTime] = useState({});
   const [seletedHomeTime, setSeletedHomeTime] = useState(false);
   const zipCode = localStorage.getItem("zipCode");
@@ -48,7 +48,7 @@ const AppointmentModal = ({
     const digits = getDigitsOnly(phone);
     // Limit to 10 digits
     const limitedDigits = digits.slice(0, 10);
-    
+
     if (limitedDigits.length === 0) return "";
     if (limitedDigits.length <= 3) return `(${limitedDigits}`;
     if (limitedDigits.length <= 6) {
@@ -69,8 +69,8 @@ const AppointmentModal = ({
           const phoneDigits = getDigitsOnly(formatted);
           // If phone has 10 digits, auto-select checkbox
           const shouldAutoSelectSMS = phoneDigits.length === 10;
-          return { 
-            ...prev, 
+          return {
+            ...prev,
             telephone: formatted,
             receiveSMS: shouldAutoSelectSMS
           };
@@ -78,44 +78,44 @@ const AppointmentModal = ({
         return prev;
       });
     }
-    
-    if(branchesHours.length > 0){
+
+    if (branchesHours.length > 0) {
       const dataHours = {
         Morning: [],
         Afternoon: [],
         Evening: [],
       };
       branchesHours.map(hours => {
-        if(hours.timeOfDay){
-          if(hours.timeOfDay == "Morning"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "09:00", type: "home" });
+        if (hours.timeOfDay) {
+          if (hours.timeOfDay == "Morning") {
+            dataHours[hours.timeOfDay].push({ ...hours, timeSlot24Hour: "09:00", type: "home" });
           }
 
-          if(hours.timeOfDay == "Afternoon"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "14:00", type: "home" });
+          if (hours.timeOfDay == "Afternoon") {
+            dataHours[hours.timeOfDay].push({ ...hours, timeSlot24Hour: "14:00", type: "home" });
           }
 
-          if(hours.timeOfDay == "Evening"){
-            dataHours[hours.timeOfDay].push({...hours, timeSlot24Hour: "20:00", type: "home" });
+          if (hours.timeOfDay == "Evening") {
+            dataHours[hours.timeOfDay].push({ ...hours, timeSlot24Hour: "20:00", type: "home" });
           }
-          
-        }else{
+
+        } else {
           const hour = parseInt(hours?.timeSlot24Hour?.split(':')[0], 10);
-          if(hour >= 5 && hour < 12){
+          if (hour >= 5 && hour < 12) {
             dataHours['Morning'].push(hours);
-          }else if(hour >= 12 && hour < 19){
+          } else if (hour >= 12 && hour < 19) {
             dataHours['Afternoon'].push(hours);
           }
-          else if(hour >= 18 && hour < 24){
+          else if (hour >= 18 && hour < 24) {
             dataHours['Evening'].push(hours);
           }
-        }        
+        }
       });
       setAvailableTimes(dataHours[selectedSlot?.time] || []);
     }
   }, [isOpen, initialPhone, branchesHours, formatPhoneNumber, selectedSlot?.time]);
 
-  
+
   const handleTimeSelect = (time) => {
     setSelectedTime(time);
     setStep(2);
@@ -162,11 +162,11 @@ const AppointmentModal = ({
   };
 
   const handleConfirm = async () => {
-    
+
     if (validateForm()) {
       // Get branchId from selectedSlot or vehicleData
       const branchId = selectedSlot?.locationId || vehicleData?.closestBranchContactInfo?.branchId;
-      
+
       if (vehicleData?.customerVehicleId && branchId) {
         try {
           // FIRST: Update optionalPhoneNumber in vehicle-condition
@@ -174,15 +174,15 @@ const AppointmentModal = ({
           console.log('📞 [AppointmentModal] Updating phone number:', phoneNumber);
           console.log('🆔 [AppointmentModal] CustomerJourneyId:', customerJourneyId);
           console.log('🚗 [AppointmentModal] VehicleData:', vehicleData);
-          
+
           // Get stored data from localStorage as fallback
           const storedData = JSON.parse(localStorage.getItem('dataVehicleCondition') || '{}');
-          
+
           // Parse mileage and ensure it's a valid number between 1 and 9999999
           const rawMileage = vehicleData?.odometer || storedData?.odometer || '0';
           const parsedMileage = parseInt(String(rawMileage).replace(/,/g, ''), 10);
           const validMileage = isNaN(parsedMileage) || parsedMileage < 1 ? 1 : Math.min(parsedMileage, 9999999);
-          
+
           const updateData = {
             optionalPhoneNumber: phoneNumber,
             email: vehicleData?.email || storedData?.email || '',
@@ -193,26 +193,26 @@ const AppointmentModal = ({
             hasAccident: vehicleData?.hasAccident || storedData?.hasAccident || 'No',
             hasClearTitle: vehicleData?.hasClearTitle || storedData?.hasClearTitle || 'Yes',
           };
-          
+
           console.log('📤 [AppointmentModal] Sending update data:', updateData);
-          
+
           await UpdateCustomerJourney(updateData, customerJourneyId);
-          
-          
-          
-          
-          
+
+
+
+
+
           // THEN: Create OTP and send SMS
           await createOnTime(
-            vehicleData.customerVehicleId, 
-            branchId, 
-            formData.telephone.replace(/\D/g, ""), 
+            vehicleData.customerVehicleId,
+            branchId,
+            formData.telephone.replace(/\D/g, ""),
             3
           );
-          
+
           await sendSmS(
-            vehicleData.customerVehicleId, 
-            formData.telephone.replace(/\D/g, ""), 
+            vehicleData.customerVehicleId,
+            formData.telephone.replace(/\D/g, ""),
             `Your appointment has been booked successfully. 
             Please use the following code to verify your appointment: ${random3Digits(6)}`
           );
@@ -220,7 +220,7 @@ const AppointmentModal = ({
           console.error('❌ [AppointmentModal] Error creating OTP or sending SMS:', err);
         }
       }
-      
+
       // SMS checkbox is always required, so always show OTP modal
       setIsSendingOTP(true);
       // Simulate sending OTP code (in production, this would be an API call)
@@ -243,7 +243,7 @@ const AppointmentModal = ({
   };
 
   const handleOTPVerify = async (otpCode) => {
-    
+
     const confirmedAppointment = {
       ...selectedSlot,
       specificTime: selectedTime,
@@ -266,7 +266,7 @@ const AppointmentModal = ({
   };
 
   const handleBack = () => {
-    
+
     if (showOTPModal) {
       setShowOTPModal(false);
       setStep(2);
@@ -275,7 +275,7 @@ const AppointmentModal = ({
       setSelectedTime({});
       setErrors({});
     } else {
-      onClose();      
+      onClose();
     }
   };
 
@@ -310,7 +310,7 @@ const AppointmentModal = ({
   if (!isOpen || !selectedSlot) return null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="sync">
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
@@ -437,7 +437,7 @@ const AppointmentModal = ({
                     label="Telephone"
                     placeholder="Enter Telephone Number"
                     value={formData.telephone}
-                    onChange={(e) =>{
+                    onChange={(e) => {
                       setPhoneNumber(e.target.value);
                       handleInputChange("telephone", e.target.value)
                     }}
@@ -481,7 +481,7 @@ const AppointmentModal = ({
                         id="appointment-modal-city-input"
                       />
 
-                        <label className="text-sm text-gray-700 cursor-pointer">ZIP Code: {zipCode}</label>
+                      <label className="text-sm text-gray-700 cursor-pointer">ZIP Code: {zipCode}</label>
 
                     </>
                   )}
@@ -499,9 +499,8 @@ const AppointmentModal = ({
                           setErrors((prev) => ({ ...prev, receiveSMS: "" }));
                         }
                       }}
-                      className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${
-                        errors.receiveSMS ? "border-red-500 border-2 ring-2 ring-red-300" : ""
-                      }`}
+                      className={`mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 ${errors.receiveSMS ? "border-red-500 border-2 ring-2 ring-red-300" : ""
+                        }`}
                     />
                     <label
                       htmlFor="appointment-modal-receive-sms-checkbox"
@@ -538,19 +537,18 @@ const AppointmentModal = ({
                     onClick={handleConfirm}
                     icon={ArrowRight}
                     iconPosition="right"
-                    className={`flex-1 ${
-                      !isFormValid() || isSendingOTP ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={`flex-1 ${!isFormValid() || isSendingOTP ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     id="appointment-modal-book-button"
                     disabled={!isFormValid() || isSendingOTP}
                     style={
                       !isFormValid() || isSendingOTP
                         ? {
-                            background:
-                              "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                            color: "#FFFFFF",
-                            borderColor: "#9ca3af",
-                          }
+                          background:
+                            "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
+                          color: "#FFFFFF",
+                          borderColor: "#9ca3af",
+                        }
                         : {}
                     }
                   >

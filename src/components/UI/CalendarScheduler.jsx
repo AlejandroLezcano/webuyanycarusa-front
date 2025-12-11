@@ -785,7 +785,7 @@ const CalendarScheduler = ({
       <div className="hidden md:block overflow-x-auto">
         <div className="min-w-full" style={{ minWidth: "900px" }}>
           {/* Header Row */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             <motion.div
               key={dayOffset}
               initial={{ opacity: 0, x: -20 }}
@@ -822,7 +822,7 @@ const CalendarScheduler = ({
           </AnimatePresence>
 
           {/* Location Rows */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {locations.map((location, locIdx) => (
               <motion.div
                 key={`${location.id}-${dayOffset}`}
