@@ -662,7 +662,7 @@ const MakeModelFlow = () => {
         )}
 
         <div
-          className={`grid ${step === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-0 lg:gap-12 container-cards-info w-full`}
+          className={`grid ${step === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-[10px] lg:gap-12 container-cards-info w-full`}
           style={{ maxWidth: '100%', boxSizing: 'border-box' }}
         >
           {/* Form Section */}
@@ -790,13 +790,13 @@ const BackgroundEffects = () => (
  */
 const FlowHeader = () => (
   <motion.div
-    className="mb-0 md:mb-8"
+    className="mb-6 md:mb-8"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.6 }}
   >
     <h1 className="text-[20px] md:text-2xl lg:text-3xl font-bold text-gray-900 mb-[15px] md:mb-6 tracking-tight text-center md:text-left">
-      Vehicle Condition
+      Vehicle Details
     </h1>
   </motion.div>
 );
