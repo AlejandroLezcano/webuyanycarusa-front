@@ -40,23 +40,23 @@ const Tabs = ({
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="relative px-1 sm:px-4 md:px-8 py-3 md:py-4 rounded-full font-bold text-[15px] md:text-lg transition-all duration-500 flex-1 md:flex-auto sm:flex-shrink-0 flex items-center justify-center gap-1 sm:gap-2 text-white min-w-0 md:min-w-min bg-[#20B24D]"
+                className="relative px-2 sm:px-4 md:px-8 py-3 md:py-4 rounded-full font-bold text-[13px] sm:text-[15px] md:text-lg transition-all duration-500 flex-1 md:flex-auto sm:flex-shrink-0 flex items-center justify-center gap-1 sm:gap-2 text-white min-w-0 md:min-w-min bg-[#20B24D]"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 id={`${tab.id}-tab-active-button`}
               >
                 {tab.icon && <tab.icon className="hidden md:block w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 flex-shrink-0" />}
-                <span className="truncate sm:whitespace-nowrap">{tab.label}</span>
+                <span className="whitespace-nowrap">{tab.shortLabel || tab.label}</span>
               </motion.button>
             ) : (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(index)}
-                className="flex items-center justify-center gap-1 sm:gap-2 px-1 sm:px-4 md:px-8 py-3 md:py-4 rounded-full font-bold text-[15px] md:text-lg transition-colors duration-300 flex-1 md:flex-auto sm:flex-shrink-0 text-[#20B24D] hover:text-[#1a9a3e] min-w-0 md:min-w-min"
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 md:px-8 py-3 md:py-4 rounded-full font-bold text-[13px] sm:text-[15px] md:text-lg transition-colors duration-300 flex-1 md:flex-auto sm:flex-shrink-0 text-[#20B24D] hover:text-[#1a9a3e] min-w-0 md:min-w-min"
                 id={`${tab.id}-tab-inactive-button`}
               >
                 {tab.icon && <tab.icon className="hidden md:block w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5 flex-shrink-0" />}
-                <span className="truncate sm:whitespace-nowrap">{tab.label}</span>
+                <span className="whitespace-nowrap">{tab.shortLabel || tab.label}</span>
               </button>
             ),
           )}
