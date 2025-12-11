@@ -69,6 +69,15 @@ const StepSeriesBody = ({
     }
   }, [selectedBodyType, setValue]);
 
+  // Auto-select series if only one option available
+  useEffect(() => {
+    if (seriesOptions.length === 1 && !selectedSeries) {
+      const seriesValue = seriesOptions[0].value || seriesOptions[0];
+      setValue('series', seriesValue);
+      onSeriesChange(seriesValue);
+    }
+  }, [seriesOptions, selectedSeries, setValue, onSeriesChange]);
+
   const handleSeriesSelect = (e) => {
     const value = e.target.value;
     setValue('series', value);
@@ -87,7 +96,7 @@ const StepSeriesBody = ({
     <motion.div
       initial={{ opacity: 0, x: -30, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      transition={{ duration: 0.5, type: 'spring' }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
     >
       {/* Auto-advance notification */}
       {shouldAutoAdvance && (
@@ -128,22 +137,37 @@ const StepSeriesBody = ({
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-          <Select
-            label="Select Series"
-            options={seriesOptions}
-            placeholder="Select Series"
-            error={errors.series?.message}
-            value={selectedSeries}
-            disabled={loading || isSeriesDisabled}
-            id="series-select"
-            {...register('series')}
-            onChange={handleSeriesSelect}
-          />
+          {/* Series - Show as text if only 1 option, otherwise dropdown */}
+          {seriesOptions.length === 1 ? (
+            <div className="w-full">
+              <label className="label hidden md:block">Select Series</label>
+              <p
+                className="text-gray-900 font-bold"
+                style={{ fontSize: '18px', padding: '0.75rem 0', paddingLeft: '1.25rem' }}
+                id="series-text"
+              >
+                {seriesOptions[0].label || seriesOptions[0]}
+              </p>
+              <input type="hidden" name="series" value={seriesOptions[0].value || seriesOptions[0]} />
+            </div>
+          ) : (
+            <Select
+              label="Select Series"
+              options={seriesOptions}
+              placeholder="Select Series"
+              error={errors.series?.message}
+              value={selectedSeries}
+              disabled={loading || isSeriesDisabled}
+              id="series-select"
+              {...register('series')}
+              onChange={handleSeriesSelect}
+            />
+          )}
 
           <Select
             label="Select Body Type"
             options={bodyTypeOptions}
-            placeholder="Select body type"
+            placeholder="Select Body Type"
             error={errors.bodyType?.message}
             value={selectedBodyType}
             disabled={loading || isBodyTypeDisabled || !watchSeries}
@@ -170,7 +194,7 @@ const StepSeriesBody = ({
                 borderColor: !isFormValid ? '#9ca3af' : '#000000',
               }}
             >
-              {loading ? 'Loading...' : 'Continue To Step 3'}
+              {loading ? 'Loading...' : 'Continue to Step 3'}
             </Button>
           </div>
         </form>

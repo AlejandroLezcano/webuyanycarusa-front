@@ -56,7 +56,7 @@ const StepAppointment = ({
       <motion.div
         initial={{ opacity: 0, x: -30, scale: 0.95 }}
         animate={{ opacity: 1, x: 0, scale: 1 }}
-        transition={{ duration: 0.5, type: 'spring' }}
+        transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
         className="space-y-6"
       >
         <NonDrivableVehicleInfo onRestart={onResetFlow} />
@@ -68,7 +68,7 @@ const StepAppointment = ({
     <motion.div
       initial={{ opacity: 0, x: -30, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      transition={{ duration: 0.5, type: 'spring' }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
       className="space-y-6"
     >
       {/* Valuation Banner */}

@@ -37,20 +37,36 @@ const ValuationTabs = ({
   const [vinValue, setVinValue] = useState("");
   const [vinLoading, setVinLoading] = useState(false);
   const [vinError, setVinError] = useState(null);
+  const [invalidVinChars, setInvalidVinChars] = useState([]);
 
   const [plateValue, setPlateValue] = useState("");
   const [plateState, setPlateState] = useState("");
 
   useEffect(() => {
-    if(years.length === 0){
+    if (years.length === 0) {
       getVehicleYears().then(yearsData => {
         setYears(yearsData.map(year => year.toString()));
       }).catch(error => {
         console.error("Error fetching years:", error);
       });
     }
-    
   }, []);
+
+  // Reset inputs when switching tabs
+  useEffect(() => {
+    setSelectedYear("");
+    setSelectedMake("");
+    setSelectedModel("");
+    setMakes([]);
+    setModels([]);
+
+    setVinValue("");
+    setVinError(null);
+    setInvalidVinChars([]);
+
+    setPlateValue("");
+    setPlateState("");
+  }, [activeTab]);
 
   const loadMakes = async (year) => {
     const makesData = await getVehicleMakes(year);
@@ -58,11 +74,11 @@ const ValuationTabs = ({
   };
 
   const loadModels = async (make) => {
-    if(!selectedYear || !make){
+    if (!selectedYear || !make) {
       setModels([]);
       return;
     }
-    const modelsData = await getModelsByMake(selectedYear,make);
+    const modelsData = await getModelsByMake(selectedYear, make);
     setModels(modelsData);
   };
 
@@ -80,10 +96,36 @@ const ValuationTabs = ({
     });
   }, [onMakeModelSubmit, selectedMake, selectedModel, selectedYear]);
 
+  // VIN character validation
+  const handleVinChange = (event) => {
+    const value = event.target.value.toUpperCase();
+    setVinValue(value);
+
+    // Check for invalid characters (I, O, Q)
+    const invalidChars = [];
+    const charMap = { 'I': '1', 'O': '0', 'Q': '9' };
+
+    for (const char of value) {
+      if (char === 'I' || char === 'O' || char === 'Q') {
+        if (!invalidChars.includes(char)) {
+          invalidChars.push(char);
+        }
+      }
+    }
+
+    // Generate suggestions (replace invalid chars)
+    if (invalidChars.length > 0) {
+      const suggestions = invalidChars.map(c => charMap[c]);
+      setInvalidVinChars(suggestions);
+    } else {
+      setInvalidVinChars([]);
+    }
+  };
+
   const handleVinValueSubmit = () => {
-    if (vinValue.length !== 17) {
+    if (vinValue.length !== 17 || invalidVinChars.length > 0) {
       return;
-    }else{
+    } else {
       onVinSubmit(vinValue);
     }
   }
@@ -91,7 +133,7 @@ const ValuationTabs = ({
   const handlePlateSubmit = (_state, _plate) => {
     if (!plateState || !plateValue) {
       return;
-    }else{
+    } else {
       onPlateSubmit(plateState, plateValue);
     }
   }
@@ -108,32 +150,31 @@ const ValuationTabs = ({
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedYear ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedYear ? "scale-110" : ""
+                      }`}
                     style={
                       selectedYear
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(239, 68, 68, 0.6), 0 6px 24px 0 rgba(239, 68, 68, 0.5), 0 0 0 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(239, 68, 68, 0.6), 0 6px 24px 0 rgba(239, 68, 68, 0.5), 0 0 0 4px rgba(239, 68, 68, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(239, 68, 68, 0.4), 0 4px 16px 0 rgba(239, 68, 68, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(239, 68, 68, 0.4), 0 4px 16px 0 rgba(239, 68, 68, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -188,38 +229,37 @@ const ValuationTabs = ({
                     />
                   </div>
                 </div>
-                
+
               </div>
 
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedMake ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedMake ? "scale-110" : ""
+                      }`}
                     style={
                       selectedMake
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(234, 179, 8, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(250, 204, 21, 0.6), 0 6px 24px 0 rgba(250, 204, 21, 0.5), 0 0 0 4px rgba(250, 204, 21, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(250, 204, 21, 0.95), rgba(234, 179, 8, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(250, 204, 21, 0.6), 0 6px 24px 0 rgba(250, 204, 21, 0.5), 0 0 0 4px rgba(250, 204, 21, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(250, 204, 21, 0.9), rgba(234, 179, 8, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(250, 204, 21, 0.4), 0 4px 16px 0 rgba(250, 204, 21, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(250, 204, 21, 0.9), rgba(234, 179, 8, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(250, 204, 21, 0.4), 0 4px 16px 0 rgba(250, 204, 21, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -274,38 +314,37 @@ const ValuationTabs = ({
                     />
                   </div>
                 </div>
-                
+
               </div>
 
               <div className="relative">
                 <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div
-                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${
-                      selectedModel ? "scale-110" : ""
-                    }`}
+                    className={`w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center text-white font-bold text-xl md:text-2xl lg:text-3xl flex-shrink-0 relative overflow-hidden transition-all duration-500 ${selectedModel ? "scale-110" : ""
+                      }`}
                     style={
                       selectedModel
                         ? {
-                            background:
-                              "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 1))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.6)",
-                            boxShadow:
-                              "0 12px 48px 0 rgba(34, 197, 94, 0.6), 0 6px 24px 0 rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                            animation: "pulse 2s ease-in-out infinite",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(34, 197, 94, 0.95), rgba(22, 163, 74, 1))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.6)",
+                          boxShadow:
+                            "0 12px 48px 0 rgba(34, 197, 94, 0.6), 0 6px 24px 0 rgba(34, 197, 94, 0.5), 0 0 0 4px rgba(34, 197, 94, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                          animation: "pulse 2s ease-in-out infinite",
+                        }
                         : {
-                            background:
-                              "linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.95))",
-                            backdropFilter: "blur(30px) saturate(180%)",
-                            WebkitBackdropFilter: "blur(30px) saturate(180%)",
-                            border: "2px solid rgba(255, 255, 255, 0.4)",
-                            boxShadow:
-                              "0 8px 32px 0 rgba(34, 197, 94, 0.4), 0 4px 16px 0 rgba(34, 197, 94, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
-                            position: "relative",
-                          }
+                          background:
+                            "linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.95))",
+                          backdropFilter: "blur(30px) saturate(180%)",
+                          WebkitBackdropFilter: "blur(30px) saturate(180%)",
+                          border: "2px solid rgba(255, 255, 255, 0.4)",
+                          boxShadow:
+                            "0 8px 32px 0 rgba(34, 197, 94, 0.4), 0 4px 16px 0 rgba(34, 197, 94, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 0 rgba(0, 0, 0, 0.1)",
+                          position: "relative",
+                        }
                     }
                   >
                     <div
@@ -397,11 +436,43 @@ const ValuationTabs = ({
                 icon={Search}
                 maxLength={17}
                 value={vinValue}
-                onChange={(event) =>
-                  setVinValue(event.target.value.toUpperCase())
-                }
+                onChange={handleVinChange}
                 id="homepage-vin-input"
               />
+
+              {/* Invalid VIN Character Alert */}
+              {invalidVinChars.length > 0 && (
+                <div className="mt-3 text-center">
+                  <p className="text-red-600 font-semibold text-sm md:text-base">
+                    The entered VIN contains an invalid character
+                  </p>
+                  <div className="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <p className="text-gray-600 text-sm">
+                      Invalid VIN characters include I, O, and Q as they can be easily misread as a number.
+                    </p>
+                    <p className="text-gray-600 text-sm mt-2">
+                      We found some alternatives to the entered VIN or{" "}
+                      <button
+                        onClick={() => onTabChange(0)}
+                        className="text-primary-600 hover:text-primary-700 underline font-semibold"
+                      >
+                        you can tell us your Year, Make and Model
+                      </button>
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      {invalidVinChars.map((char, index) => (
+                        <div
+                          key={index}
+                          className="px-4 py-2 bg-white border border-gray-300 rounded font-bold text-gray-900"
+                        >
+                          {char}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="mt-3 text-center">
                 <button
                   onClick={() => onOpenVinHelp(vinValue)}
@@ -415,7 +486,7 @@ const ValuationTabs = ({
                 <Button
                   size="lg"
                   className="px-6 md:px-10 py-3 md:py-4 text-base md:text-lg font-bold w-full md:w-auto"
-                  disabled={vinValue.length !== 17 || vinLoading}
+                  disabled={vinValue.length !== 17 || vinLoading || invalidVinChars.length > 0}
                   loading={vinLoading}
                   onClick={handleVinValueSubmit}
                   icon={ArrowRight}
@@ -435,7 +506,7 @@ const ValuationTabs = ({
                 )}
               </div>
             </div>
-          </div>
+          </div >
         ),
       },
       {
@@ -500,7 +571,7 @@ const ValuationTabs = ({
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          {!hideHeaderAndTabs && (
+          {!hideHeaderAndTabs && activeTab === 0 && (
             <div className="text-center">
               <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 For the Most Accurate Valuation,{" "}

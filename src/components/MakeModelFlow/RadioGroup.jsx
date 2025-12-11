@@ -27,8 +27,15 @@ const RadioGroup = ({ label, name, register, error, required = false, hint }) =>
             {...register(name, {
               required: required ? 'This field is required' : false,
             })}
-            className="w-5 h-5 text-primary-600"
+            className="peer sr-only"
           />
+          <span
+            className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-all duration-200"
+            style={{
+              boxShadow: 'inset 0 0 0 3px white'
+            }}
+          >
+          </span>
           <span className="text-gray-700">Yes</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -39,8 +46,15 @@ const RadioGroup = ({ label, name, register, error, required = false, hint }) =>
             {...register(name, {
               required: required ? 'This field is required' : false,
             })}
-            className="w-5 h-5 text-primary-600"
+            className="peer sr-only"
           />
+          <span
+            className="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-all duration-200"
+            style={{
+              boxShadow: 'inset 0 0 0 3px white'
+            }}
+          >
+          </span>
           <span className="text-gray-700 font-bold">No</span>
         </label>
       </div>
