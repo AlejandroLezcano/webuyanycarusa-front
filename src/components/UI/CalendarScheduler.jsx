@@ -1116,7 +1116,7 @@ const CalendarScheduler = ({
       {/* Navigation Footer - Desktop Only */}
       <div className="hidden md:block">
         <div
-          className="flex items-center justify-between gap-4 rounded-2xl p-4 mt-6"
+          className="flex flex-nowrap items-center justify-between gap-2 lg:gap-4 rounded-2xl p-3 lg:p-4 mt-6"
           style={{
             background: "linear-gradient(135deg, #20B24D 0%, #1a9a3e 100%)",
             boxShadow: "0 8px 24px 0 rgba(8, 162, 70, 0.3)",
@@ -1128,7 +1128,7 @@ const CalendarScheduler = ({
             disabled={!canGoBack}
             whileHover={canGoBack ? { scale: 1.05, x: -5 } : {}}
             whileTap={canGoBack ? { scale: 0.95 } : {}}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoBack
+            className={`flex-shrink-0 flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-base transition-all duration-200 ${canGoBack
               ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}
@@ -1140,13 +1140,13 @@ const CalendarScheduler = ({
           {/* Center Section - Search by ZIP */}
           <form
             onSubmit={handleZipSearch}
-            className="flex flex-col md:flex-row items-center gap-4 md:gap-3 w-full flex-1"
+            className="flex flex-row items-center justify-center gap-2 lg:gap-3 w-auto flex-1"
           >
-            <span className="text-white font-medium text-base md:text-lg whitespace-nowrap w-full md:w-auto text-center md:text-left">
+            <span className="text-white font-medium text-xs lg:text-lg whitespace-nowrap text-left hidden sm:block">
               Looking for a different branch?
             </span>
-            <div className="flex flex-col flex-1 w-full md:w-auto gap-1">
-              <div className="flex gap-3">
+            <div className="flex flex-col flex-1 w-auto gap-1">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Enter ZIP Code"
@@ -1157,7 +1157,7 @@ const CalendarScheduler = ({
                     setZipCode(e.target.value.replace(/\D/g, ""));
                     setZipCodeError(""); // Clear error when user types
                   }}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-0 ${zipCodeError
+                  className={`flex-1 px-2 lg:px-4 py-1.5 lg:py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-[80px] text-xs lg:text-base ${zipCodeError
                     ? 'border-2 border-red-500 focus:ring-red-500'
                     : 'border border-white/30 focus:ring-white/50'
                     }`}
@@ -1167,7 +1167,7 @@ const CalendarScheduler = ({
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                  className="px-3 lg:px-5 py-1.5 lg:py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-1 lg:gap-2 whitespace-nowrap text-xs lg:text-base"
                 >
                   Search by ZIP
                   <ArrowRight className="w-4 h-4" />
@@ -1187,7 +1187,7 @@ const CalendarScheduler = ({
             disabled={!canGoForward}
             whileHover={canGoForward ? { scale: 1.05, x: 5 } : {}}
             whileTap={canGoForward ? { scale: 0.95 } : {}}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoForward
+            className={`flex-shrink-0 relative flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-base transition-all duration-200 ${canGoForward
               ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}
