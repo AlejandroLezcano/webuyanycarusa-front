@@ -24,16 +24,16 @@ const ManageAppointment = () => {
         // Check for customerRef in query params (for /updateappointment route)
         const searchParams = new URLSearchParams(location.search);
         const customerRef = searchParams.get('customerRef');
-        
+
         const customerJourneyId = id || customerRef || getCookie("visitorId");
-        
+
         if (!customerJourneyId) {
           navigate("/");
           return;
         }
 
         const journeyData = await GetCustomerJourney(customerJourneyId);
-        
+
         if (!journeyData?.currentAppointment) {
           navigate("/");
           return;
@@ -44,7 +44,7 @@ const ManageAppointment = () => {
         // Load branch information
         const branchData = await getBrancheById(journeyData.currentAppointment.branchId);
         setBranchInfo(branchData.branchLocation);
-        
+
         setLoading(false);
       } catch (error) {
         console.error("Error loading appointment:", error);
@@ -58,18 +58,15 @@ const ManageAppointment = () => {
   const handleUpdateAppointment = () => {
     // Store the existing appointment ID for rescheduling
     const appointmentId = appointmentData?.currentAppointment?.appointmentId;
-    console.log('🔄 [ManageAppointment] Update appointment clicked:', {
-      appointmentId,
-      appointmentData: appointmentData?.currentAppointment
-    });
-    
+    console.debug('[ManageAppointment] Update appointment clicked, appointmentId:', appointmentId);
+
     if (appointmentId) {
       localStorage.setItem('existingAppointmentId', appointmentId);
-      
+
     } else {
-      console.warn('⚠️ [ManageAppointment] No appointmentId found!');
+      console.warn('[ManageAppointment] No appointmentId found');
     }
-    
+
     // Redirect to calendar with reschedule flag
     navigate(`/secure/bookappointment/${appointmentData.customerJourneyId}?reschedule=true`);
   };
@@ -191,7 +188,7 @@ const ManageAppointment = () => {
                 Your Appointment at Our {branchInfo.branchName} Branch
               </h2>
               <p className="text-gray-700 mb-6">
-                You&apos;ve already made an appointment at our {branchInfo.branchName} branch on {appointmentDate} at {appointmentTime}. 
+                You&apos;ve already made an appointment at our {branchInfo.branchName} branch on {appointmentDate} at {appointmentTime}.
                 If you need to reschedule for another time or branch, please use the buttons below.
               </p>
 
@@ -303,84 +300,84 @@ const ManageAppointment = () => {
           {/* Sidebar - Right Side */}
           <div className="lg:col-span-3 space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              {branchInfo.branchName}
-            </h3>
-            
-            {/* Branch Manager */}
-            {branchInfo.branchManagerName && (
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                {branchInfo.branchName}
+              </h3>
+
+              {/* Branch Manager */}
+              {branchInfo.branchManagerName && (
+                <div className="mb-4">
+                  <p className="font-semibold text-gray-700">Branch Manager</p>
+                  <p className="text-gray-900">{branchInfo.branchManagerName}</p>
+                </div>
+              )}
+
+              {/* Address */}
               <div className="mb-4">
-                <p className="font-semibold text-gray-700">Branch Manager</p>
-                <p className="text-gray-900">{branchInfo.branchManagerName}</p>
+                <p className="font-semibold text-gray-700">Address</p>
+                <p className="text-gray-900">
+                  {branchInfo.address1}
+                  {branchInfo.address2 && <>, {branchInfo.address2}</>}
+                  <br />
+                  {branchInfo.city}, {branchInfo.state} {branchInfo.zipCode}
+                </p>
               </div>
-            )}
 
-            {/* Address */}
-            <div className="mb-4">
-              <p className="font-semibold text-gray-700">Address</p>
-              <p className="text-gray-900">
-                {branchInfo.address1}
-                {branchInfo.address2 && <>, {branchInfo.address2}</>}
-                <br />
-                {branchInfo.city}, {branchInfo.state} {branchInfo.zipCode}
-              </p>
-            </div>
+              {/* Telephone */}
+              {branchInfo.branchPhone && (
+                <div className="mb-4">
+                  <p className="font-semibold text-gray-700">Telephone</p>
+                  <a
+                    href={`tel:${branchInfo.branchPhone}`}
+                    className="text-primary-600 hover:underline"
+                  >
+                    {branchInfo.branchPhone}
+                  </a>
+                </div>
+              )}
 
-            {/* Telephone */}
-            {branchInfo.branchPhone && (
-              <div className="mb-4">
-                <p className="font-semibold text-gray-700">Telephone</p>
-                <a 
-                  href={`tel:${branchInfo.branchPhone}`}
-                  className="text-primary-600 hover:underline"
+              {/* Email Branch Button */}
+              {branchInfo.branchEmail && (
+                <a
+                  href={`mailto:${branchInfo.branchEmail}`}
+                  className="block w-full bg-black text-white text-center py-3 rounded-lg font-bold hover:bg-gray-800 transition-colors mb-4"
                 >
-                  {branchInfo.branchPhone}
+                  Email Branch
                 </a>
-              </div>
-            )}
+              )}
 
-            {/* Email Branch Button */}
-            {branchInfo.branchEmail && (
-              <a
-                href={`mailto:${branchInfo.branchEmail}`}
-                className="block w-full bg-black text-white text-center py-3 rounded-lg font-bold hover:bg-gray-800 transition-colors mb-4"
-              >
-                Email Branch
-              </a>
-            )}
-
-            {/* Hours */}
-            <div>
-              <p className="font-semibold text-gray-700 mb-2">Hours</p>
-              <div className="space-y-1 text-sm">
-                {branchInfo.operationHours?.map((hour, index) => (
-                  <div key={index} className="flex justify-between">
-                    <span className="text-gray-700">{hour.dayOfWeek}</span>
-                    <span className="text-gray-900">
-                      {hour.type === 'open' ? `${hour.openTime} - ${hour.closeTime}` : 'Closed'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Location Map */}
-            {branchInfo.latitude && branchInfo.longitude && (
-              <div className="mt-6">
-                <h4 className="font-semibold text-gray-700 mb-2">Location</h4>
-                <div className="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
-                  <iframe
-                    title="Branch Location"
-                    src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${branchInfo.latitude},${branchInfo.longitude}`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen
-                    loading="lazy"
-                  />
+              {/* Hours */}
+              <div>
+                <p className="font-semibold text-gray-700 mb-2">Hours</p>
+                <div className="space-y-1 text-sm">
+                  {branchInfo.operationHours?.map((hour, index) => (
+                    <div key={index} className="flex justify-between">
+                      <span className="text-gray-700">{hour.dayOfWeek}</span>
+                      <span className="text-gray-900">
+                        {hour.type === 'open' ? `${hour.openTime} - ${hour.closeTime}` : 'Closed'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            )}
+
+              {/* Location Map */}
+              {branchInfo.latitude && branchInfo.longitude && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-gray-700 mb-2">Location</h4>
+                  <div className="w-full h-64 bg-gray-200 rounded-lg overflow-hidden">
+                    <iframe
+                      title="Branch Location"
+                      src={`https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${branchInfo.latitude},${branchInfo.longitude}`}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

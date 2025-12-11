@@ -112,22 +112,22 @@ const CalendarScheduler = ({
     ];
     let daysAdded = 0;
     let currentOffset = offset;
-    
+
     // For "We Come to You" (home), show all days including weekends
     // For branch appointments, only show business days (Monday-Friday)
     const showWeekendsForHome = branchType === "home";
-    
+
     while (daysAdded < 7 && currentOffset < offset + 14) { // Safety limit
       const date = new Date();
       date.setDate(date.getDate() + currentOffset);
       const dayIndex = date.getDay();
-      
+
       // Include the date if:
       // 1. It's a home appointment (show all days)
       // 2. It's a branch appointment and it's a weekday (Monday=1 to Friday=5)
       const isWeekday = dayIndex >= 1 && dayIndex <= 5;
       const shouldInclude = showWeekendsForHome || isWeekday;
-      
+
       if (shouldInclude) {
         // Format: day/month/year (DD/MM/YYYY)
         const day = String(date.getDate()).padStart(2, "0");
@@ -162,22 +162,22 @@ const CalendarScheduler = ({
     ];
     let daysAdded = 0;
     let currentOffset = 0;
-    
+
     // For "We Come to You" (home), show all days including weekends
     // For branch appointments, only show business days (Monday-Friday)
     const showWeekendsForHome = branchType === "home";
-    
+
     while (daysAdded < MAX_DAYS_AHEAD && currentOffset < 30) { // Safety limit of 30 days
       const date = new Date();
       date.setDate(date.getDate() + currentOffset);
       const dayIndex = date.getDay();
-      
+
       // Include the date if:
       // 1. It's a home appointment (show all days)
       // 2. It's a branch appointment and it's a weekday (Monday=1 to Friday=5)
       const isWeekday = dayIndex >= 1 && dayIndex <= 5;
       const shouldInclude = showWeekendsForHome || isWeekday;
-      
+
       if (shouldInclude) {
         // Format: day/month/year (DD/MM/YYYY)
         const day = String(date.getDate()).padStart(2, "0");
@@ -260,24 +260,24 @@ const CalendarScheduler = ({
     // Convert locationId to number for comparison (select values are strings)
     const numericLocationId = typeof locationId === 'string' ? parseInt(locationId, 10) : locationId;
     const location = locations.find((loc) => loc.id === numericLocationId);
-    
+
     if (!location || !location.timeSlots) {
       return false;
     }
-    
+
     // Convert date string to the format used by backend (YYYY-MM-DDTHH:mm:ss)
     const backendDateKey = `${dateString}T00:00:00`;
     const daySlots = location.timeSlots[backendDateKey];
-    
+
     if (!daySlots || !Array.isArray(daySlots)) {
       return false;
     }
-    
+
     // For mobile appointments (home type), check timeOfDay
     if (location.type === 'home') {
       return daySlots.some(slot => slot.timeOfDay === timeSlot);
     }
-    
+
     // For physical appointments, map timeSlot to actual time periods
     // Morning: 9:00-11:59, Afternoon: 12:00-17:59, Evening: 18:00+
     const timeSlotMapping = {
@@ -294,10 +294,10 @@ const CalendarScheduler = ({
         return hour >= 18;
       }
     };
-    
+
     const mapper = timeSlotMapping[timeSlot];
     if (!mapper) return false;
-    
+
     return daySlots.some(mapper);
   };
 
@@ -460,13 +460,13 @@ const CalendarScheduler = ({
 
   const handleMobileLocationChange = (e) => {
     const locationId = e.target.value;
-    
+
     // Check if "More Locations..." was selected
     if (locationId === "0") {
       setShowMoreLocationsModal(true);
       return;
     }
-    
+
     setSelectedLocationMobile(locationId);
     setSelectedDateMobile("");
     setSelectedTimeMobile("");
@@ -502,7 +502,7 @@ const CalendarScheduler = ({
   const loadDataBranch = (location) => {
     getBrancheById(location.id).then(response => {
       const res = response.branchLocation;
-      
+
       const obj = {};
       for (let i = 0; i < res.operationHours.length; i++) {
         const hour = res.operationHours[i];
@@ -742,22 +742,39 @@ const CalendarScheduler = ({
               {selectedLocationMobile &&
                 selectedDateMobile &&
                 (() => {
-                  // Find the selected date object to get dayIndex
-                  const selectedDateObj = allDatesForMobile.find(
-                    (date) => date.fullDate === selectedDateMobile
-                  );
-                  if (!selectedDateObj) return [];
-                  
-                  // Filter time slots to only show available ones
-                  return timeSlots
-                    .filter((timeSlot) =>
-                      isSlotAvailable(selectedLocationMobile, selectedDateObj.fullDate, timeSlot)
-                    )
-                    .map((timeSlot, index) => (
-                      <option key={timeSlot + "-" + index} value={timeSlot}>
-                        {timeSlot}
-                      </option>
-                    ));
+                  // Get actual time slots from the location data
+                  const numericLocationId = typeof selectedLocationMobile === 'string'
+                    ? parseInt(selectedLocationMobile, 10)
+                    : selectedLocationMobile;
+                  const location = locations.find((loc) => loc.id === numericLocationId);
+
+                  if (!location || !location.timeSlots) return [];
+
+                  // Get time slots for the selected date
+                  const backendDateKey = `${selectedDateMobile}T00:00:00`;
+                  const daySlots = location.timeSlots[backendDateKey];
+
+                  if (!daySlots || !Array.isArray(daySlots)) return [];
+
+                  // Return actual time slots sorted by time
+                  return daySlots
+                    .slice() // Create a copy to avoid mutating original
+                    .sort((a, b) => {
+                      const timeA = a.timeSlot24Hour || '';
+                      const timeB = b.timeSlot24Hour || '';
+                      return timeA.localeCompare(timeB);
+                    })
+                    .map((slot, index) => {
+                      // Format the display time
+                      const displayTime = slot.timeSlot24Hour || slot.timeOfDay || 'Unknown';
+                      // Use timeSlotId as value for accurate booking
+                      const slotValue = `${slot.timeSlotId}:${slot.timeSlot24Hour || slot.timeOfDay}`;
+                      return (
+                        <option key={slot.timeSlotId + "-" + index} value={slotValue}>
+                          {displayTime}
+                        </option>
+                      );
+                    });
                 })()}
             </select>
 
@@ -860,7 +877,7 @@ const CalendarScheduler = ({
                       (date) => date.fullDate === selectedDateMobile
                     );
                     if (!selectedDateObj) return [];
-                    
+
                     // Filter time slots to only show available ones
                     return timeSlots
                       .filter((timeSlot) =>
@@ -1099,7 +1116,7 @@ const CalendarScheduler = ({
       {/* Navigation Footer - Desktop Only */}
       <div className="hidden md:block">
         <div
-          className="flex items-center justify-between gap-4 rounded-2xl p-4 mt-6"
+          className="flex flex-nowrap items-center justify-between gap-2 lg:gap-4 rounded-2xl p-3 lg:p-4 mt-6"
           style={{
             background: "linear-gradient(135deg, #20B24D 0%, #1a9a3e 100%)",
             boxShadow: "0 8px 24px 0 rgba(8, 162, 70, 0.3)",
@@ -1111,7 +1128,7 @@ const CalendarScheduler = ({
             disabled={!canGoBack}
             whileHover={canGoBack ? { scale: 1.05, x: -5 } : {}}
             whileTap={canGoBack ? { scale: 0.95 } : {}}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoBack
+            className={`flex-shrink-0 flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-base transition-all duration-200 ${canGoBack
               ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}
@@ -1123,13 +1140,13 @@ const CalendarScheduler = ({
           {/* Center Section - Search by ZIP */}
           <form
             onSubmit={handleZipSearch}
-            className="flex flex-col md:flex-row items-center gap-4 md:gap-3 w-full flex-1"
+            className="flex flex-row items-center justify-center gap-2 lg:gap-3 w-auto flex-1"
           >
-            <span className="text-white font-medium text-base md:text-lg whitespace-nowrap w-full md:w-auto text-center md:text-left">
+            <span className="text-white font-medium text-xs lg:text-lg whitespace-nowrap text-left hidden sm:block">
               Looking for a different branch?
             </span>
-            <div className="flex flex-col flex-1 w-full md:w-auto gap-1">
-              <div className="flex gap-3">
+            <div className="flex flex-col flex-1 w-auto gap-1">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Enter ZIP Code"
@@ -1140,7 +1157,7 @@ const CalendarScheduler = ({
                     setZipCode(e.target.value.replace(/\D/g, ""));
                     setZipCodeError(""); // Clear error when user types
                   }}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-0 ${zipCodeError
+                  className={`flex-1 px-2 lg:px-4 py-1.5 lg:py-2.5 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all min-w-[80px] text-xs lg:text-base ${zipCodeError
                     ? 'border-2 border-red-500 focus:ring-red-500'
                     : 'border border-white/30 focus:ring-white/50'
                     }`}
@@ -1150,7 +1167,7 @@ const CalendarScheduler = ({
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                  className="px-3 lg:px-5 py-1.5 lg:py-2.5 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-medium transition-all flex items-center justify-center gap-1 lg:gap-2 whitespace-nowrap text-xs lg:text-base"
                 >
                   Search by ZIP
                   <ArrowRight className="w-4 h-4" />
@@ -1170,7 +1187,7 @@ const CalendarScheduler = ({
             disabled={!canGoForward}
             whileHover={canGoForward ? { scale: 1.05, x: 5 } : {}}
             whileTap={canGoForward ? { scale: 0.95 } : {}}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 ${canGoForward
+            className={`flex-shrink-0 relative flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg font-semibold text-xs lg:text-base transition-all duration-200 ${canGoForward
               ? "bg-gray-900 text-white hover:bg-gray-800 shadow-lg"
               : "bg-gray-400 text-gray-200 cursor-not-allowed"
               }`}

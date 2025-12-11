@@ -93,7 +93,9 @@ export const getModelsByMake = async (year, make, retries = 2) => {
 
 export const getSeries = async (year, make, model, retries = 2) => {
   try {
-    const r = await httpClient.get(`/vehicles/trims/${year}/${make}?model=${encodeURIComponent(model)}`);
+    const r = await httpClient.get(`/vehicles/trims/${year}/${encodeURIComponent(make)}`, {
+      params: { model }
+    });
     return r.data.sort();
   } catch (err) {
     console.error("Get trims error:", err);

@@ -17,7 +17,8 @@ This project is the frontend of the WeBuyAnyCar USA platform, a modern and respo
 ## ✨ Main Features
 
 - 🚗 **Multiple Valuation Flows**: VIN, Make/Model, and License Plate
-- 📅 **Appointment System**: Interactive calendar to schedule evaluations
+- 📅 **Appointment System**: Interactive calendar to schedule evaluations (Desktop & Mobile optimized)
+- 📱 **Mobile First**: Optimized mobile booking flow with OTP verification
 - 📍 **Branch Search**: Locating nearby stores
 - 🎨 **Modern UI**: Responsive design with Tailwind CSS
 - ⚡ **Optimized Performance**: Built with Vite for fast loading
@@ -25,13 +26,14 @@ This project is the frontend of the WeBuyAnyCar USA platform, a modern and respo
 - 📊 **Integrated Tracking**: Google Tag Manager for analytics
 - 🔄 **State Management**: Context API for global state
 - 📝 **Form Validation**: React Hook Form with validations
+- 🛡️ **Robust Error Handling**: User-friendly error messages and professional logging
 
 ## 🛠️ Technologies Used
 
 ### Core
 - **React 18.2.0**: Main UI library
 - **Vite 5.1.0**: Build tool and dev server
-- **React Router DOM 6.22.0**: Navigation and routing
+- **React Router DOM 6.22.0**: Navigation and routing (Optimized for v7)
 
 ### UI/UX
 - **Tailwind CSS 3.4.1**: Utility-first style framework
@@ -86,7 +88,8 @@ This command will read the `package.json` file and download all necessary depend
 
 ### Step 3: Configure Environment Variables
 
-Create a `.env` file in the project root (next to `package.json`) with the following variables:
+Create a `.env.development` file in the project root (next to `package.json`).
+**Important:** Ensure `VITE_API_BASE_URL` points to port 5000 (where the backend runs).
 
 ```env
 # Backend API base URL
@@ -95,23 +98,16 @@ VITE_API_BASE_URL=http://localhost:5000/api
 # Authentication credentials for API access
 VITE_AUTH_USERNAME=your_username
 VITE_AUTH_PASSWORD=your_password
-
-# Or for production:
-# VITE_API_BASE_URL=https://api.webuyanycarusa.com/api
-# VITE_AUTH_USERNAME=production_username
-# VITE_AUTH_PASSWORD=production_password
 ```
 
 > **Note**: Environment variables in Vite must start with `VITE_` to be accessible in the code.
 
-> **Important**: The authentication credentials are required for the automatic token refresh functionality. Make sure to replace the placeholder values with actual credentials.
-
 ### Step 4: Verify Configuration
 
 Make sure that:
-- The `.env` file exists in the project root
-- The backend API URL is correct
-- All dependencies installed correctly (verify that the `node_modules` folder exists)
+- The `.env.development` file exists in the project root
+- The backend API URL is correct (`http://localhost:5000/api`)
+- All dependencies installed correctly
 
 ## ▶️ How to Run the Project
 
@@ -121,11 +117,6 @@ To run the project in development mode with hot-reload:
 
 ```bash
 npm run dev
-```
-
-Or with yarn:
-```bash
-yarn dev
 ```
 
 The development server will start and you'll see a message similar to:
@@ -138,10 +129,9 @@ The development server will start and you'll see a message similar to:
 
 The application will automatically open in your browser at `http://localhost:3000`.
 
-**Development mode features:**
-- Hot Module Replacement (HMR) - Changes are reflected instantly
-- Source maps for debugging
-- Detailed errors in console
+**Development Perks:**
+- **Console Hygiene**: Debug logs are cleanly separated. Use `console.debug` for verbose output.
+- **Hot Module Replacement (HMR)**: Changes are reflected instantly.
 
 ### Production Mode (Build)
 
@@ -151,22 +141,7 @@ To create an optimized version for production:
 npm run build
 ```
 
-Or with yarn:
-```bash
-yarn build
-```
-
 This will generate a `dist/` folder with optimized and minified files ready for deployment.
-
-### Preview Production Build
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
-This will start a local server that serves the files from the `dist/` folder, simulating how it will look in production.
 
 ### Linting
 
@@ -176,31 +151,29 @@ To check the code with ESLint:
 npm run lint
 ```
 
-This will show code style errors and warnings.
-
 ## 📁 Project Structure
 
 ```
 we-buy-any-car-front/
-├── public/                 # Static files (if any)
+├── public/                 # Static files
 ├── src/
 │   ├── components/         # Reusable components
 │   │   ├── Appointment/    # Appointment components
 │   │   ├── Home/           # Home page components
 │   │   ├── Layout/         # Header, Footer, Layout
 │   │   ├── Tracking/       # Google Tag Manager
-│   │   ├── UI/             # Generic UI components
+│   │   ├── UI/             # Generic UI components (OTP, Modal, etc.)
 │   │   └── VehiclePreview/ # Vehicle preview
 │   ├── context/            # Context API (global state)
 │   ├── hooks/              # Custom React hooks
-│   ├── pages/              # Main pages/Views
+│   ├── pages/              # Main pages/Views (MakeModelFlow, ManageAppointment)
 │   ├── services/           # API services and HTTP calls
 │   ├── utils/              # Utilities and helpers
 │   ├── App.jsx             # Root app component
 │   ├── App.css             # Global styles
 │   ├── main.jsx            # Entry point
 │   └── index.css           # Base styles
-├── .env                    # Environment variables (create)
+├── .env.development        # Environment variables for dev
 ├── .gitignore              # Files ignored by Git
 ├── index.html              # Main HTML
 ├── package.json            # Dependencies and scripts
@@ -228,120 +201,35 @@ we-buy-any-car-front/
 - Continue to valuation flow
 
 ### 4. Appointment Flow
-- Appointment type selection
-- Branch selection
-- Date and time selection
-- Appointment confirmation
+- **Mobile & Desktop Support**: Optimized flows for both devices.
+- **OTP Verification**: Secure 6-digit code verification via SMS.
+- **Live Branch Search**: Find nearest locations.
+- **Real-time Availability**: Live time slots from the backend.
 
 ## 🔌 Backend Integration
 
-The application connects with the backend API through the `api.js` service. Make sure that:
+The application connects with the backend API through the `httpClient` service.
+Make sure that:
+1. The backend is running on `http://localhost:5000`
+2. CORS is enabled on the backend for `http://localhost:3000`
 
-1. The backend is running (see backend README)
-2. The `VITE_API_BASE_URL` variable in `.env` points to the correct URL
-3. The backend has CORS configured to allow requests from the frontend
-
-### Endpoints Used
-
+### Key Endpoints Used
 - `POST /api/v1/auth/login` - Authentication
-- `GET /api/v1/vehicles/years` - Get years
-- `GET /api/v1/vehicles/makes/{year}` - Get makes
-- `GET /api/v1/vehicles/models/{year}/{make}` - Get models
-- `POST /api/v1/valuation` - Create valuation
-- `POST /api/v1/appointment` - Create appointment
-
-## 🎨 Customization
-
-### Change Development Port
-
-Edit `vite.config.js`:
-```javascript
-server: {
-  port: 3000,  // Change this number
-  open: true
-}
-```
-
-### Configure Base URL
-
-In `vite.config.js`:
-```javascript
-base: '/',  // Change this if deploying to a subdirectory
-```
+- `POST /api/scheduling/otp/request` - SMS OTP Request
+- `POST /api/Appointment/book` - Book Appointment
+- `GET /api/v1/vehicles/...` - Vehicle Data
 
 ## 🐛 Troubleshooting
 
-### Error: "Cannot find module"
-- Run `npm install` again
-- Delete `node_modules` and `package-lock.json`, then run `npm install`
-
-### Error: "Port 3000 is already in use"
-- Change the port in `vite.config.js` or kill the process using the port:
-  ```bash
-  # Windows
-  netstat -ano | findstr :3000
-  taskkill /PID <PID> /F
-  
-  # Mac/Linux
-  lsof -ti:3000 | xargs kill
-  ```
-
 ### API connection error
-- Verify the backend is running
-- Verify the `VITE_API_BASE_URL` variable in `.env`
-- Check the browser console for CORS errors
+- Verify the backend is running (`dotnet run`).
+- Verify `VITE_API_BASE_URL` in `.env.development` is `http://localhost:5000/api`.
+- Check browser console (Network tab) for failed requests.
 
-### Hot-reload not working
-- Restart the development server
-- Clear browser cache
-- Verify there are no syntax errors
-
-## 📝 Available Scripts
-
-- `npm run dev` - Start the development server
-- `npm run build` - Build the application for production
-- `npm run preview` - Preview the production build
-- `npm run lint` - Run ESLint to check the code
-
-## 🚀 Deployment
-
-### Build for Production
-
-1. Make sure the environment variables in `.env` are configured for production
-2. Run the build:
-   ```bash
-   npm run build
-   ```
-3. The `dist/` folder will contain the files ready to deploy
-
-### Deployment Options
-
-- **Vercel**: Connect your repository and deploy automatically
-- **Netlify**: Similar to Vercel, with SPA support
-- **Hostinger**: Upload the `dist/` folder via FTP
-- **Own server**: Configure a web server (Nginx, Apache) to serve the `dist/` folder
-
-> **Note**: The project is configured for the domain `sellyourcarrnow.com` according to `vite.config.js`. Adjust the `base` according to your domain.
-
-## 📊 Tracking and Analytics
-
-The project includes integration with Google Tag Manager (GTM) through the `GTMProvider` component. Make sure to configure your GTM ID in the corresponding component.
-
-## 🔒 Security
-
-- Sensitive environment variables should be in `.env` and never committed
-- The `.env` file is in `.gitignore` by default
-- In production, use HTTPS
-- Validate all user inputs
-
-## 📄 License
-
-This project is private and for internal use.
+### Port Conflicts
+- If port 3000 is used, Vite will try 3001. Update backend CORS if needed.
+- To kill port 3000 on Mac: `lsof -ti:3000 | xargs kill -9`
 
 ## 👥 Contributors
 
 WeBuyAnyCar USA Development Team
-
----
-
-**Need help?** Check the documentation for [React](https://react.dev/), [Vite](https://vitejs.dev/), or contact the development team.

@@ -39,7 +39,7 @@ import {
 
 // Services
 import { saveValuationVehicle } from '../services/valuationService';
-import { createAppointment, rescheduleAppointment } from '../services/appointmentService';
+import { createAppointment, rescheduleAppointment, createOnTime } from '../services/appointmentService';
 import { UpdateCustomerJourney } from '../services/vehicleService';
 
 // Utils
@@ -116,7 +116,7 @@ const MakeModelFlow = () => {
     // Log reschedule status when on step 4
     if (step === 4) {
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
-      
+
     }
   }, [step]);
 
@@ -208,12 +208,7 @@ const MakeModelFlow = () => {
    * Handle Series & Body form submission
    */
   const handleSeriesBodySubmit = useCallback(async (data) => {
-    console.log('🚀 handleSeriesBodySubmit called:', {
-      data,
-      currentPath: window.location.pathname,
-      customerJourneyId,
-      isMobile: window.innerWidth < 768
-    });
+
 
     trackSubmission('series_body', {
       vehicle_series: data.series,
@@ -222,19 +217,17 @@ const MakeModelFlow = () => {
 
     try {
       const response = await updateSeriesBody(data);
-      console.log('✅ updateSeriesBody response:', response);
-      
+
+
       if (response) {
         updateVehicleData({ ...vehicleData, ...response });
-        console.log('🧭 About to navigate to step 3, current URL:', window.location.pathname);
-        
-        console.log('🚀 Executing navigateToStep(3)');
+
         navigateToStep(3);
       } else {
-        console.warn('⚠️ No response from updateSeriesBody, not navigating');
+        console.warn('No response from updateSeriesBody, not navigating');
       }
     } catch (error) {
-      console.error('❌ Error updating series/body:', error);
+      console.error('Error updating series/body:', error);
     }
   }, [trackSubmission, updateSeriesBody, updateVehicleData, vehicleData, navigateToStep, customerJourneyId]);
 
@@ -244,7 +237,7 @@ const MakeModelFlow = () => {
     const currentPath = window.location.pathname;
     const isStep2Url = currentPath.includes('/valuation/vehicledetails');
     const isNotStep4Url = !currentPath.includes('/secure/bookappointment');
-    
+
     // Only auto-advance if we're actually on step 2 URL and not on step 4 URL
     if (step === 2 && isStep2Url && isNotStep4Url && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
       // Small delay to ensure UI updates are visible
@@ -445,7 +438,7 @@ const MakeModelFlow = () => {
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
       const isReschedule = !!existingAppointmentId;
 
-      
+
 
       const appointmentPayload = {
         customerVehicleId: vehicleData.customerVehicleId,
@@ -458,7 +451,7 @@ const MakeModelFlow = () => {
         email: vehicleData.email,
         address1: appointmentData?.contactInfo?.addressLine1 || null,
         address2: appointmentData?.contactInfo?.addressLine2 || null,
-        city: appointmentData.location,
+        city: appointmentData?.contactInfo?.city || branchSelect?.city || appointmentData.location,
         model: vehicleData.model,
         visitId: vehicleData.vid,
         otpCode: appointmentData.otpCode,
@@ -510,24 +503,32 @@ const MakeModelFlow = () => {
     } catch (error) {
       console.error('Error creating appointment:', error);
 
-      // Check if it's an OTP validation error (400 or specific error message)
+      // Get the error message from various possible locations
+      const errorMessage = error.response?.data?.message ||
+        error.response?.data?.detail ||
+        error.response?.data?.errorMessage ||
+        error.message || '';
+
+      // Check if it's an OTP validation error (any status with OTP-related message)
       const isOTPError = error.response?.status === 400 ||
-        error.response?.data?.message?.toLowerCase().includes('otp') ||
-        error.response?.data?.message?.toLowerCase().includes('code') ||
-        error.response?.data?.message?.toLowerCase().includes('invalid');
+        error.response?.status === 401 ||
+        errorMessage.toLowerCase().includes('otp') ||
+        errorMessage.toLowerCase().includes('one time password') ||
+        errorMessage.toLowerCase().includes('code') ||
+        errorMessage.toLowerCase().includes('invalid');
 
       if (isOTPError) {
-        // OTP error - show error in modal
+        // OTP error - show error in modal, stay open
         if (window.showToast) {
           window.showToast('The OTP you entered is invalid or has expired. Please try again.', 'error');
         }
         return false; // Show error in OTP modal
       } else {
-        // Server error (500) or other error - show generic error and close modal
+        // Other server error - show generic error and close modal
         if (window.showToast) {
           window.showToast('An error occurred while booking your appointment. Please try again.', 'error');
         }
-        return true; // Close modal (don't show OTP error)
+        return false; // Keep modal open for retry
       }
     }
   }, [branches.branchesData, vehicleData, updateVehicleData, updateAppointmentInfo, navigate, customerJourneyId]);
@@ -607,12 +608,69 @@ const MakeModelFlow = () => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dateFormatted = `${days[dateObj.getDay()]} ${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()}`;
 
+    // Parse the time value - it now includes timeSlotId:timeSlot24Hour format
+    let specificTime = null;
+    const branchId = parseInt(appointmentData.locationId, 10);
+    const branch = branches.branchesData.find(b => b.branchId === branchId);
+
+    // Check if time includes timeSlotId (new format: "21:Evening" or "15:09:00")
+    if (appointmentData.time && appointmentData.time.includes(':')) {
+      const parts = appointmentData.time.split(':');
+      const maybeTimeSlotId = parseInt(parts[0], 10);
+
+      // If first part is a number, it's our new format with timeSlotId
+      if (!isNaN(maybeTimeSlotId) && maybeTimeSlotId > 0) {
+        const timeValue = parts.slice(1).join(':'); // Rest is the time value
+        specificTime = {
+          timeSlotId: maybeTimeSlotId,
+          timeSlot24Hour: timeValue,
+          timeOfDay: timeValue
+        };
+        console.debug('[Mobile] Parsed time slot from selection:', specificTime);
+      }
+    }
+
+    // Fallback: If not new format, try old logic (Morning/Afternoon/Evening)
+    if (!specificTime && branch && branch.timeSlots) {
+      const backendDateKey = `${appointmentData.date}T00:00:00`;
+      const daySlots = branch.timeSlots[backendDateKey];
+
+      if (daySlots && Array.isArray(daySlots)) {
+        // Map time period to hour ranges
+        const timeMapping = {
+          'Morning': (hour) => hour >= 9 && hour < 12,
+          'Afternoon': (hour) => hour >= 12 && hour < 18,
+          'Evening': (hour) => hour >= 18
+        };
+
+        const matcher = timeMapping[appointmentData.time];
+        if (matcher) {
+          // Find first slot matching the time period
+          const matchingSlot = daySlots.find(slot => {
+            if (slot.timeOfDay === appointmentData.time) return true; // Home appointments
+            const hour = parseInt(slot.timeSlot24Hour?.split(':')[0] || '0');
+            return matcher(hour);
+          });
+
+          if (matchingSlot) {
+            specificTime = {
+              timeSlotId: matchingSlot.timeSlotId,
+              timeSlot24Hour: matchingSlot.timeSlot24Hour || matchingSlot.timeOfDay,
+              timeOfDay: matchingSlot.timeOfDay
+            };
+            console.debug('[Mobile] Found matching time slot (fallback):', specificTime);
+          }
+        }
+      }
+    }
+
     const slotData = {
       locationId: appointmentData.locationId,
       location: appointmentData.location || '',
       date: appointmentData.date,
       dateFormatted,
       time: appointmentData.time,
+      specificTime, // Include the full time slot data with timeSlotId
       phone: appointmentData.phone || '',
       contactInfo: {
         firstName: appointmentData.firstName,
@@ -620,6 +678,7 @@ const MakeModelFlow = () => {
         telephone: appointmentData.telephone,
         addressLine1: appointmentData.address1 || null,
         addressLine2: appointmentData.address2 || null,
+        city: appointmentData.city || null,
       },
       receiveSMS: appointmentData.receiveSMS,
     };
@@ -627,9 +686,9 @@ const MakeModelFlow = () => {
     // Update optionalPhoneNumber BEFORE showing OTP modal
     try {
       const phoneNumber = formatPhone(appointmentData.telephone);
+      const customerVehicleId = vehicleData?.customerVehicleId || customerJourneyData?.customerVehicleId;
 
-
-
+      console.debug('[Mobile] Updating phone and requesting OTP for customerVehicleId:', customerVehicleId);
 
       const updateResult = await UpdateCustomerJourney(
         {
@@ -638,34 +697,57 @@ const MakeModelFlow = () => {
         customerJourneyId
       );
 
-
+      // REQUEST OTP - This was missing! Mobile now mirrors desktop flow
+      if (customerVehicleId && branchId) {
+        console.debug('[Mobile] Requesting OTP...');
+        await createOnTime(
+          customerVehicleId,
+          branchId,
+          phoneNumber.replace(/\D/g, ''), // Send digits only
+          3 // retries
+        );
+        console.debug('[Mobile] OTP request sent successfully');
+      } else {
+        console.warn('[Mobile] Missing customerVehicleId or branchId for OTP request');
+      }
 
       // Only show OTP modal if update was successful
       setPendingAppointmentData(slotData);
       setShowOTPModal(true);
     } catch (error) {
-      console.error('❌ Error updating phone number:', error);
+      console.error('[Mobile] Error updating phone or requesting OTP:', error.message || error);
+
+      // Check for rate limiting
+      const errorMessage = error.response?.data?.message || error.response?.data?.detail || error.message || '';
+      const isRateLimited = error.response?.status === 429 ||
+        errorMessage.toLowerCase().includes('rate limit') ||
+        errorMessage.toLowerCase().includes('too many');
+
       if (window.showToast) {
-        window.showToast('An error occurred while processing your request. Please try again.', 'error');
+        if (isRateLimited) {
+          window.showToast('Too many OTP requests. Please wait a few minutes and try again.', 'error');
+        } else {
+          window.showToast('An error occurred while processing your request. Please try again.', 'error');
+        }
       }
     }
-  }, [customerJourneyId]);
+  }, [customerJourneyId, vehicleData, customerJourneyData, branches.branchesData]);
 
   // Step 1: Show ValuationTabs
   // Only show step 1 if URL actually indicates step 1 (not if step state is temporarily wrong)
   const currentPath = window.location.pathname;
-  
+
   // NEVER show ValuationTabs if URL is for step 4 (bookappointment)
   const isStep4Url = currentPath.includes('/secure/bookappointment');
   const isStep3Url = currentPath.includes('/valuation/vehiclecondition');
   const isStep2Url = currentPath.includes('/valuation/vehicledetails');
-  
+
   // Step 1 URLs: /valuation, /sell-by-make-model, or /valuation/{uuid} (without vehicledetails/vehiclecondition/bookappointment)
-  const isStep1Url = !isStep4Url && !isStep3Url && !isStep2Url && 
-                     (currentPath === '/valuation' || 
-                      currentPath === '/sell-by-make-model' ||
-                      currentPath.startsWith('/valuation/'));
-  
+  const isStep1Url = !isStep4Url && !isStep3Url && !isStep2Url &&
+    (currentPath === '/valuation' ||
+      currentPath === '/sell-by-make-model' ||
+      currentPath.startsWith('/valuation/'));
+
   if (step === 1 && isStep1Url && !isStep4Url) {
     return (
       <ValuationTabs
@@ -702,127 +784,148 @@ const MakeModelFlow = () => {
         {(() => {
           // Use the already calculated URL-based step flags
           const effectiveStep = isStep4Url ? 4 : isStep3Url ? 3 : isStep2Url ? 2 : step;
-          
+
           return (
             <>
-        {/* Header */}
-        {effectiveStep !== 4 && <FlowHeader />}
+              {/* Header */}
+              {effectiveStep !== 4 && <FlowHeader />}
 
-        {/* Progress Bar */}
-        {effectiveStep !== 4 && (
-          <ProgressBar currentStep={effectiveStep} totalSteps={4} steps={PROGRESS_STEPS} />
-        )}
+              {/* Progress Bar */}
+              {effectiveStep !== 4 && (
+                <ProgressBar currentStep={effectiveStep} totalSteps={4} steps={PROGRESS_STEPS} />
+              )}
 
-        <div
-          className={`grid ${effectiveStep === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-0 lg:gap-12 container-cards-info w-full`}
-          style={{ maxWidth: '100%', boxSizing: 'border-box' }}
-        >
-          {/* Form Section */}
-          <div
-            className={effectiveStep === 4 ? 'w-full max-w-7xl mx-auto' : ''}
-            style={{ maxWidth: '100%', boxSizing: 'border-box' }}
-          >
-            {/* Step 2: Series & Body */}
-            {effectiveStep === 2 && (
-              <StepSeriesBody
-                vehicleData={vehicleData}
-                seriesOptions={vehicleSeries.seriesOptions}
-                bodyTypeOptions={vehicleSeries.bodyTypeOptions}
-                selectedSeries={vehicleSeries.selectedSeries}
-                selectedBodyType={vehicleSeries.selectedBodyType}
-                isSeriesDisabled={vehicleSeries.isSeriesDisabled}
-                isBodyTypeDisabled={vehicleSeries.isBodyTypeDisabled}
-                shouldAutoAdvance={vehicleSeries.shouldAutoAdvance}
-                onSeriesChange={vehicleSeries.handleSeriesChange}
-                onBodyTypeChange={vehicleSeries.handleBodyTypeChange}
-                onSubmit={handleSeriesBodySubmit}
-                loading={journeyLoading}
-              />
-            )}
+              <div
+                className={`grid ${effectiveStep === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-4 lg:gap-12 container-cards-info w-full`}
+                style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+              >
+                {/* Form Section */}
+                <div
+                  className={effectiveStep === 4 ? 'w-full max-w-7xl mx-auto' : ''}
+                  style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+                >
+                  {/* Step 2: Series & Body */}
+                  {effectiveStep === 2 && (
+                    <StepSeriesBody
+                      vehicleData={vehicleData}
+                      seriesOptions={vehicleSeries.seriesOptions}
+                      bodyTypeOptions={vehicleSeries.bodyTypeOptions}
+                      selectedSeries={vehicleSeries.selectedSeries}
+                      selectedBodyType={vehicleSeries.selectedBodyType}
+                      isSeriesDisabled={vehicleSeries.isSeriesDisabled}
+                      isBodyTypeDisabled={vehicleSeries.isBodyTypeDisabled}
+                      shouldAutoAdvance={vehicleSeries.shouldAutoAdvance}
+                      onSeriesChange={vehicleSeries.handleSeriesChange}
+                      onBodyTypeChange={vehicleSeries.handleBodyTypeChange}
+                      onSubmit={handleSeriesBodySubmit}
+                      loading={journeyLoading}
+                    />
+                  )}
 
-            {/* Step 3: Vehicle Condition */}
-            {effectiveStep === 3 && !showAdditionalQuestions && (
-              <StepVehicleCondition
-                vehicleData={vehicleData}
-                userInfo={userInfo}
-                onSubmit={handleVehicleConditionSubmit}
-                loading={loadingValuation}
-                zipCodeError={zipCodeError}
-              />
-            )}
+                  {/* Step 3: Vehicle Condition */}
+                  {effectiveStep === 3 && !showAdditionalQuestions && (
+                    <StepVehicleCondition
+                      vehicleData={vehicleData}
+                      userInfo={userInfo}
+                      onSubmit={handleVehicleConditionSubmit}
+                      loading={loadingValuation}
+                      zipCodeError={zipCodeError}
+                    />
+                  )}
 
-            {/* Additional Questions */}
-            {effectiveStep === 3 && showAdditionalQuestions && (
-              <AdditionalQuestionsForm
-                vehicleData={vehicleData}
-                damageForm={damageForm}
-                onSubmit={handleAdditionalQuestionsSubmit}
-                onBack={() => setShowAdditionalQuestions(false)}
-                loading={loadingValuation}
-              />
-            )}
+                  {/* Additional Questions */}
+                  {effectiveStep === 3 && showAdditionalQuestions && (
+                    <AdditionalQuestionsForm
+                      vehicleData={vehicleData}
+                      damageForm={damageForm}
+                      onSubmit={handleAdditionalQuestionsSubmit}
+                      onBack={() => setShowAdditionalQuestions(false)}
+                      loading={loadingValuation}
+                    />
+                  )}
 
-            {/* No Towing Modal */}
-            <NoTowingModal
-              isOpen={showNoTowingModal}
-              onClose={() => setShowNoTowingModal(false)}
-              onContinue={handleContinueAfterModal}
-            />
+                  {/* No Towing Modal */}
+                  <NoTowingModal
+                    isOpen={showNoTowingModal}
+                    onClose={() => setShowNoTowingModal(false)}
+                    onContinue={handleContinueAfterModal}
+                  />
 
-            {/* Step 4: Appointment */}
-            {effectiveStep === 4 && (
-              <StepAppointment
-                vehicleData={vehicleData}
-                userInfo={userInfo}
-                valuation={valuation}
-                loadingValuation={loadingValuation}
-                branchesData={branches.branchesData}
-                firstBranch={branches.firstBranch}
-                selectedBranchHours={branches.selectedBranchHours}
-                selectedAppointment={selectedAppointment}
-                selectedSlot={selectedSlot}
-                isModalOpen={isModalOpen}
-                showOTPModal={showOTPModal}
-                pendingAppointmentData={pendingAppointmentData}
-                customerJourneyId={customerJourneyId}
-                onSlotClick={handleSlotClick}
-                onAppointmentConfirm={handleAppointmentConfirm}
-                onSearchByZip={handleSearchByZip}
-                onBookAppointment={handleBookAppointment}
-                onModalClose={() => {
-                  setIsModalOpen(false);
-                  setSelectedSlot(null);
-                }}
-                onOTPClose={() => {
-                  setShowOTPModal(false);
-                  setPendingAppointmentData(null);
-                }}
-                onOTPVerify={async (otpCode) => {
-                  const result = await handleAppointmentConfirm({ ...pendingAppointmentData, otpCode });
-                  return result; // Return true on success, false on failure
-                }}
-                onOTPResend={() => { }}
-                onResetFlow={resetFlow}
-              />
-            )}
-          </div>
+                  {/* Step 4: Appointment */}
+                  {effectiveStep === 4 && (
+                    <StepAppointment
+                      vehicleData={vehicleData}
+                      userInfo={userInfo}
+                      valuation={valuation}
+                      loadingValuation={loadingValuation}
+                      branchesData={branches.branchesData}
+                      firstBranch={branches.firstBranch}
+                      selectedBranchHours={branches.selectedBranchHours}
+                      selectedAppointment={selectedAppointment}
+                      selectedSlot={selectedSlot}
+                      isModalOpen={isModalOpen}
+                      showOTPModal={showOTPModal}
+                      pendingAppointmentData={pendingAppointmentData}
+                      customerJourneyId={customerJourneyId}
+                      onSlotClick={handleSlotClick}
+                      onAppointmentConfirm={handleAppointmentConfirm}
+                      onSearchByZip={handleSearchByZip}
+                      onBookAppointment={handleBookAppointment}
+                      onModalClose={() => {
+                        setIsModalOpen(false);
+                        setSelectedSlot(null);
+                      }}
+                      onOTPClose={() => {
+                        setShowOTPModal(false);
+                        setPendingAppointmentData(null);
+                      }}
+                      onOTPVerify={async (otpCode) => {
+                        const result = await handleAppointmentConfirm({ ...pendingAppointmentData, otpCode });
+                        return result; // Return true on success, false on failure
+                      }}
+                      onOTPResend={async () => {
+                        try {
+                          const phoneNumber = formatPhone(pendingAppointmentData?.contactInfo?.telephone);
+                          const branchId = pendingAppointmentData?.locationId;
+                          const customerVehicleId = vehicleData?.customerVehicleId || customerJourneyData?.customerVehicleId;
 
-          {/* Preview Section - Hidden in step 4 */}
-          {effectiveStep !== 4 && (
-            <div>
-              <VehiclePreview
-                vehicle={{
-                  ...(customerJourneyData || vehicleData),
-                  // Preserve plate info from vehicleData if not in customerJourneyData
-                  plateNumber: customerJourneyData?.plateNumber || vehicleData?.plateNumber,
-                  plateState: customerJourneyData?.plateState || vehicleData?.plateState,
-                }}
-                loading={vehicleSeries.loading}
-                imageUrl={vehicleSeries.imageUrl || customerJourneyData?.vehicleImageUrl}
-              />
-            </div>
-          )}
-        </div>
+                          if (customerVehicleId && branchId && phoneNumber) {
+                            console.debug('[Mobile] Resending OTP...');
+                            await createOnTime(
+                              customerVehicleId,
+                              branchId,
+                              phoneNumber.replace(/\D/g, ''),
+                              3
+                            );
+                            console.debug('[Mobile] OTP resent successfully');
+                          } else {
+                            console.warn('[Mobile] Missing data for OTP resend');
+                          }
+                        } catch (error) {
+                          console.error('[Mobile] Error resending OTP:', error.message || error);
+                        }
+                      }}
+                      onResetFlow={resetFlow}
+                    />
+                  )}
+                </div>
+
+                {/* Preview Section - Hidden in step 4 */}
+                {effectiveStep !== 4 && (
+                  <div>
+                    <VehiclePreview
+                      vehicle={{
+                        ...(customerJourneyData || vehicleData),
+                        // Preserve plate info from vehicleData if not in customerJourneyData
+                        plateNumber: customerJourneyData?.plateNumber || vehicleData?.plateNumber,
+                        plateState: customerJourneyData?.plateState || vehicleData?.plateState,
+                      }}
+                      loading={vehicleSeries.loading}
+                      imageUrl={vehicleSeries.imageUrl || customerJourneyData?.vehicleImageUrl}
+                    />
+                  </div>
+                )}
+              </div>
             </>
           );
         })()}
