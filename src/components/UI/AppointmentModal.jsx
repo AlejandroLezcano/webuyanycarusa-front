@@ -384,13 +384,13 @@ const AppointmentModal = ({
               <>
                 {/* Appointment Information Banner */}
                 <div className="mb-6 p-4 bg-gradient-to-r from-primary-50 to-primary-100 rounded-2xl border border-primary-200">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-2" style={{ justifyContent: 'center' }}>
                     <Clock className="w-5 h-5 text-primary-600" />
-                    <h3 className="text-sm font-semibold text-primary-900 uppercase tracking-wide">
+                    <h3 className="text-sm font-semibold text-primary-900 uppercase tracking-wide" >
                       Appointment Details
                     </h3>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-800">
+                  <div className="space-y-1 text-sm text-gray-800 text-center">
                     <p className="font-semibold">
                       <span className="text-gray-600">Location:</span>{" "}
                       {selectedSlot.location}

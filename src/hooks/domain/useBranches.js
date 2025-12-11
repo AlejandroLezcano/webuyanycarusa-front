@@ -66,6 +66,7 @@ const transformBranchData = (branch, type = 'branch') => {
     longitude: '',
     type,
     operationHours,
+    timeSlots: branch.timeSlots || {}, // Pass original timeSlots for availability checking
   };
 };
 

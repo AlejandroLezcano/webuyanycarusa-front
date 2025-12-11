@@ -30,7 +30,8 @@ export function useCustomerJourney(journeyId) {
    */
   const fetchJourney = useCallback(async () => {
     if (!journeyId) {
-      navigate('/');
+      // Don't navigate away if journeyId is not yet available
+      // It might be loading from URL params or localStorage
       return null;
     }
 
@@ -67,7 +68,17 @@ export function useCustomerJourney(journeyId) {
    * @param {Object} data - Series and body style data
    */
   const updateSeriesBody = useCallback(async (data) => {
-    if (!journeyId) return null;
+    console.log('🔄 updateSeriesBody called:', {
+      data,
+      journeyId,
+      isMobile: window.innerWidth < 768,
+      currentPath: window.location.pathname
+    });
+
+    if (!journeyId) {
+      console.error('❌ No journeyId provided to updateSeriesBody');
+      return null;
+    }
 
     setLoading(true);
     setError(null);
@@ -78,12 +89,14 @@ export function useCustomerJourney(journeyId) {
         bodyStyle: data.bodyType,
       }, journeyId);
       
+      console.log('✅ CustomerDetailJourney response:', response);
+      
       const cleanResponse = cleanObject(response);
       setCustomerJourneyData(prev => ({ ...prev, ...cleanResponse }));
       return cleanResponse;
     } catch (err) {
       const errorMessage = getUserFriendlyMessage(err);
-      console.error('Error updating customer journey:', err);
+      console.error('❌ Error updating customer journey:', err);
       setError(errorMessage);
       
       if (window.showToast) {
@@ -143,12 +156,12 @@ export function useCustomerJourney(journeyId) {
     }
   }, [journeyId]);
 
-  // Auto-fetch on mount if journeyId exists
+  // Auto-fetch on mount if journeyId exists, or when journeyId changes
   useEffect(() => {
-    if (journeyId && !customerJourneyData) {
+    if (journeyId && !customerJourneyData && !loading) {
       fetchJourney();
     }
-  }, [journeyId, customerJourneyData, fetchJourney]);
+  }, [journeyId, customerJourneyData, loading, fetchJourney]);
 
   return {
     customerJourneyData,
