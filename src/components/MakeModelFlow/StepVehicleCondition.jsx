@@ -29,8 +29,10 @@ const StepVehicleCondition = ({
     control,
     watch,
     setError,
+    trigger,
     formState: { errors },
   } = useForm({
+    mode: 'onChange', // Validate on change for real-time validation
     defaultValues: {
       runsAndDrives: vehicleData?.runsAndDrives || 'Yes',
       hasIssues: vehicleData?.hasIssues || 'No',
@@ -59,7 +61,10 @@ const StepVehicleCondition = ({
     watchHasAccident &&
     watchHasClearTitle &&
     watchOdometer &&
-    parseInt(watchOdometer?.toString().replace(/,/g, '') || '0') > 0 &&
+    (() => {
+      const numValue = parseInt(watchOdometer?.toString().replace(/,/g, '') || '0');
+      return numValue >= 1000 && numValue <= 500000;
+    })() &&
     watchZipCode &&
     watchEmail;
 
@@ -138,33 +143,85 @@ const StepVehicleCondition = ({
               name="odometer"
               control={control}
               rules={{
-                required: 'Odometer reading is required',
+                required: {
+                  value: true,
+                  message: 'Odometer reading is required',
+                },
                 validate: (value) => {
-                  const numValue = parseInt(value?.toString().replace(/,/g, '') || '0');
-                  if (numValue < 0) return 'Odometer must be positive';
-                  if (numValue === 0) return 'Odometer reading is required';
+                  // Handle empty or whitespace
+                  if (!value || (typeof value === 'string' && value.trim() === '')) {
+                    return 'Odometer reading is required';
+                  }
+                  
+                  // Remove commas and parse
+                  const cleanValue = value.toString().replace(/,/g, '');
+                  const numValue = parseInt(cleanValue, 10);
+                  
+                  // Check if valid number
+                  if (isNaN(numValue) || numValue === 0) {
+                    return 'Odometer reading is required';
+                  }
+                  
+                  // Validate range
+                  if (numValue < 1000) {
+                    return 'Odometer must be at least 1,000 miles';
+                  }
+                  
+                  if (numValue > 500000) {
+                    return 'Odometer must not exceed 500,000 miles';
+                  }
+                  
                   return true;
                 },
               }}
-              render={({ field, fieldState }) => (
-                <Input
-                  label="What Does the Odometer Read?"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Enter Vehicle Mileage"
-                  error={fieldState.error?.message}
-                  id="odometer-input"
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    // Remove all non-numeric characters
-                    const numericValue = e.target.value.replace(/\D/g, '');
-                    // Format with commas
-                    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                    field.onChange(formattedValue);
-                  }}
-                  onBlur={field.onBlur}
-                />
-              )}
+              render={({ field, fieldState }) => {
+                const handleChange = (e) => {
+                  // Remove all non-numeric characters
+                  const numericValue = e.target.value.replace(/\D/g, '');
+                  
+                  // If empty, allow it
+                  if (!numericValue) {
+                    field.onChange('');
+                    trigger('odometer');
+                    return;
+                  }
+                  
+                  const numValue = parseInt(numericValue, 10);
+                  
+                  // Block values greater than 500000
+                  if (numValue > 500000) {
+                    return; // Don't update the field
+                  }
+                  
+                  // Format with commas and update
+                  const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                  field.onChange(formattedValue);
+                  
+                  // Trigger validation immediately to show errors for invalid values
+                  // This allows typing but validates in real-time
+                  setTimeout(() => {
+                    trigger('odometer');
+                  }, 10);
+                };
+
+                return (
+                  <Input
+                    label="What Does the Odometer Read?"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter Vehicle Mileage"
+                    error={fieldState.error?.message}
+                    id="odometer-input"
+                    value={field.value || ''}
+                    onChange={handleChange}
+                    onBlur={(e) => {
+                      field.onBlur();
+                      // Ensure validation runs on blur
+                      trigger('odometer');
+                    }}
+                  />
+                );
+              }}
             />
           </div>
 
