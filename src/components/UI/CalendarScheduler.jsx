@@ -293,6 +293,9 @@ const CalendarScheduler = ({
   const smsCheckboxBranchRef = useRef(null);
   const smsCheckboxBranchContainerRef = useRef(null);
   const [selectedBranchForInfo, setSelectedBranchForInfo] = useState(null);
+  const [showMoreLocationsModal, setShowMoreLocationsModal] = useState(false);
+  const [moreLocationsZip, setMoreLocationsZip] = useState("");
+  const [moreLocationsError, setMoreLocationsError] = useState("");
 
   // Sync states when props change
   useEffect(() => {
@@ -381,15 +384,49 @@ const CalendarScheduler = ({
 
   const handleMobileLocationChange = (e) => {
     const locationId = e.target.value;
+    
+    // Check if "More Locations..." was selected
+    if (locationId === "0") {
+      setShowMoreLocationsModal(true);
+      return;
+    }
+    
     setSelectedLocationMobile(locationId);
     setSelectedDateMobile("");
     setSelectedTimeMobile("");
   };
 
+  const handleMoreLocationsSearch = async (e) => {
+    e?.preventDefault();
+    setMoreLocationsError("");
+
+    if (!moreLocationsZip || moreLocationsZip.length !== 5) {
+      setMoreLocationsError("Please enter a valid 5-digit ZIP code");
+      return;
+    }
+
+    if (searchZip) {
+      const result = await searchZip(moreLocationsZip, setMoreLocationsError);
+      if (result?.success) {
+        setShowMoreLocationsModal(false);
+        setMoreLocationsZip("");
+        setMoreLocationsError("");
+      }
+    }
+  };
+
+  const handleCloseMoreLocationsModal = () => {
+    setShowMoreLocationsModal(false);
+    setMoreLocationsZip("");
+    setMoreLocationsError("");
+    // Reset the select to empty value
+    setSelectedLocationMobile("");
+  };
+
   const loadDataBranch = (location) => {
     getBrancheById(location.id).then(response => {
       const res = response.branchLocation;
-      console.log('DEBUG: Branch Details Response', res);
+      
       const obj = {};
       for (let i = 0; i < res.operationHours.length; i++) {
         const hour = res.operationHours[i];
@@ -1035,6 +1072,73 @@ const CalendarScheduler = ({
           </motion.button>
         </div>
       </div>
+
+      {/* More Locations Modal */}
+      <AnimatePresence>
+        {showMoreLocationsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={handleCloseMoreLocationsModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Find More Locations
+                </h3>
+                <p className="text-gray-600">
+                  Enter your ZIP code to find branches near you
+                </p>
+              </div>
+
+              <form onSubmit={handleMoreLocationsSearch} className="space-y-4">
+                <div>
+                  <Input
+                    label="ZIP Code"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter 5-digit ZIP code"
+                    maxLength={5}
+                    value={moreLocationsZip}
+                    onChange={(e) => {
+                      setMoreLocationsZip(e.target.value.replace(/\D/g, ""));
+                      setMoreLocationsError("");
+                    }}
+                    error={moreLocationsError}
+                    className="text-center text-lg font-semibold"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseMoreLocationsModal}
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!moreLocationsZip || moreLocationsZip.length !== 5}
+                    className="flex-1 px-4 py-3 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                  >
+                    Search
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Branch Info Modal */}
       <BranchInfoModal
