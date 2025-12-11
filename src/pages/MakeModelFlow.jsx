@@ -796,7 +796,7 @@ const MakeModelFlow = () => {
               )}
 
               <div
-                className={`grid ${effectiveStep === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-0 lg:gap-12 container-cards-info w-full`}
+                className={`grid ${effectiveStep === 4 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'} gap-4 lg:gap-12 container-cards-info w-full`}
                 style={{ maxWidth: '100%', boxSizing: 'border-box' }}
               >
                 {/* Form Section */}
