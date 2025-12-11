@@ -11,7 +11,7 @@ const Header = () => {
     <header id="main-header" className="relative z-50">
       <div id="banner" className="py-4" style={{ backgroundColor: "#20B24D" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="hidden md:flex items-center justify-between flex-wrap gap-4">
+          <div className="hidden md:flex items-center justify-between flex-nowrap gap-4">
             <div id="top-slogan">
               <a
                 href="https://www.trustpilot.com/review/webuyanycarusa.com?utm_medium=trustbox&utm_source=custom"
@@ -111,25 +111,25 @@ const Header = () => {
               className="black box bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors font-semibold relative inline-flex items-center text-base"
             >
               <div className="absolute -top-6 -left-6 w-16 h-10 z-10 transform -rotate-12">
-                <svg 
-                  id="location-link-badge" 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 122 65" 
+                <svg
+                  id="location-link-badge"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 122 65"
                   className="w-full h-full"
                 >
-                  <path 
-                    d="M2.052 41.32s0-21.049 6.77-32.578a14.685 14.685 0 0 1 7.507-6.744L72.677 4.06l26.34 21.735c9.24 1.018 16.136 2.952 18.936 6.795a38.94 38.94 0 0 1 1.603 11.555c-1.527 9.62-13.438 8.5-13.438 8.5h-1.196a10.766 10.766 0 0 1-21.48 0H38.14a10.766 10.766 0 0 1-21.48 0h-1.247S1.416 53.967 2.001 41.32z" 
-                    fill="#fcb813" 
-                    stroke="#000" 
+                  <path
+                    d="M2.052 41.32s0-21.049 6.77-32.578a14.685 14.685 0 0 1 7.507-6.744L72.677 4.06l26.34 21.735c9.24 1.018 16.136 2.952 18.936 6.795a38.94 38.94 0 0 1 1.603 11.555c-1.527 9.62-13.438 8.5-13.438 8.5h-1.196a10.766 10.766 0 0 1-21.48 0H38.14a10.766 10.766 0 0 1-21.48 0h-1.247S1.416 53.967 2.001 41.32z"
+                    fill="#fcb813"
+                    stroke="#000"
                     strokeWidth="5"
                   />
-                  <text 
-                    textAnchor="middle" 
-                    x="47" 
-                    y="43" 
-                    className="location-link-text" 
-                    fontSize="38" 
-                    fontWeight="bold" 
+                  <text
+                    textAnchor="middle"
+                    x="47"
+                    y="43"
+                    className="location-link-text"
+                    fontSize="38"
+                    fontWeight="bold"
                     fill="black"
                     fontFamily="Arial, sans-serif"
                   >
