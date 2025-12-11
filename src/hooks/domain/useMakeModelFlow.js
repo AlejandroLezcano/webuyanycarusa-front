@@ -51,17 +51,31 @@ export function useMakeModelFlow() {
   const { uid } = useParams();
   const { vehicleData, updateVehicleData, resetData } = useApp();
 
-  const [customerJourneyId, setCustomerJourneyId] = useState('');
+  // Extract uid from URL path as fallback (for cases where useParams doesn't work immediately)
+  const getUidFromPath = () => {
+    const pathParts = location.pathname.split('/');
+    const lastPart = pathParts[pathParts.length - 1];
+    // Check if it looks like a UUID
+    if (lastPart && lastPart.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      return lastPart;
+    }
+    return null;
+  };
+
+  // Initialize customerJourneyId with uid from URL first, then path extraction, then localStorage
+  const [customerJourneyId, setCustomerJourneyId] = useState(() => {
+    return uid || getUidFromPath() || localStorage.getItem('customerJourneyId') || '';
+  });
   const [step, setStep] = useState(() => getStepFromPath(location.pathname, vehicleData));
 
-  // Initialize customer journey ID
+  // Keep customerJourneyId in sync with URL param - always prioritize URL
   useEffect(() => {
-    const journeyId = uid || localStorage.getItem('customerJourneyId');
-    setCustomerJourneyId(journeyId);
-    if (journeyId) {
-      localStorage.setItem('customerJourneyId', journeyId);
+    const effectiveUid = uid || getUidFromPath();
+    if (effectiveUid && effectiveUid !== customerJourneyId) {
+      setCustomerJourneyId(effectiveUid);
+      localStorage.setItem('customerJourneyId', effectiveUid);
     }
-  }, [uid]);
+  }, [uid, location.pathname, customerJourneyId]);
 
   // Sync step with URL
   useEffect(() => {
@@ -81,7 +95,8 @@ export function useMakeModelFlow() {
    * @param {number} newStep - Target step number
    */
   const navigateToStep = useCallback((newStep) => {
-    const id = customerJourneyId || localStorage.getItem('customerJourneyId');
+    // Prioritize: uid from URL > path extraction > customerJourneyId state > localStorage
+    const id = uid || getUidFromPath() || customerJourneyId || localStorage.getItem('customerJourneyId');
     const basePath = STEP_PATHS[newStep] || '/valuation';
     const targetPath = `${basePath}/${id}`;
 
@@ -92,7 +107,7 @@ export function useMakeModelFlow() {
     } else {
       setStep(newStep);
     }
-  }, [customerJourneyId, location.pathname, navigate, vehicleData]);
+  }, [uid, customerJourneyId, location.pathname, navigate, vehicleData]);
 
   /**
    * Go to next step

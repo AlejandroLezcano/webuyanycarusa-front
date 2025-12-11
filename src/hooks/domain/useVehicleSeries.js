@@ -39,13 +39,14 @@ export function useVehicleSeries(vehicleInfo) {
       );
       setListSeries(series);
 
-      // Auto-select first series if only one
+      // Auto-select series only if there's exactly one option
       if (series.length > 0) {
         const uniqueSeries = [...new Set(series.map(item => item.series))];
         if (uniqueSeries.length === 1) {
           setSelectedSeries(uniqueSeries[0]);
         } else {
-          setSelectedSeries(series[0].series);
+          // Don't auto-select when there are multiple options
+          setSelectedSeries('');
         }
 
         // Load initial image

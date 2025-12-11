@@ -116,10 +116,7 @@ const MakeModelFlow = () => {
     // Log reschedule status when on step 4
     if (step === 4) {
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
-      console.log('📅 [MakeModelFlow] Step 4 loaded - Reschedule mode:', {
-        existingAppointmentId,
-        isReschedule: !!existingAppointmentId
-      });
+      
     }
   }, [step]);
 
@@ -144,6 +141,7 @@ const MakeModelFlow = () => {
 
 
 
+  // Effect for step 4 reload: Load valuation and branches when page is reloaded
   // Effect for step 4 reload: Load valuation and branches when page is reloaded
   useEffect(() => {
     const isOnStep4Url = window.location.pathname.includes('/secure/bookappointment');
@@ -634,7 +632,12 @@ const MakeModelFlow = () => {
   }, [customerJourneyId]);
 
   // Step 1: Show ValuationTabs
-  if (step === 1) {
+  // Only show step 1 if URL actually indicates step 1 (not if step state is temporarily wrong)
+  const isStep1Url = window.location.pathname === '/valuation' || 
+                     window.location.pathname === '/sell-by-make-model' ||
+                     window.location.pathname.match(/^\/valuation\/[^/]+$/);
+  
+  if (step === 1 && isStep1Url) {
     return (
       <ValuationTabs
         activeTab={0}
