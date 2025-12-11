@@ -1,0 +1,6 @@
+# API Configuration
+VITE_API_BASE_URL=http://localhost:5001/api
+
+# Authentication Credentials for API (from appsettings.json)
+VITE_AUTH_USERNAME=admin
+VITE_AUTH_PASSWORD=password123
