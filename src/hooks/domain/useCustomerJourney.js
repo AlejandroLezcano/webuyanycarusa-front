@@ -68,7 +68,17 @@ export function useCustomerJourney(journeyId) {
    * @param {Object} data - Series and body style data
    */
   const updateSeriesBody = useCallback(async (data) => {
-    if (!journeyId) return null;
+    console.log('🔄 updateSeriesBody called:', {
+      data,
+      journeyId,
+      isMobile: window.innerWidth < 768,
+      currentPath: window.location.pathname
+    });
+
+    if (!journeyId) {
+      console.error('❌ No journeyId provided to updateSeriesBody');
+      return null;
+    }
 
     setLoading(true);
     setError(null);
@@ -79,12 +89,14 @@ export function useCustomerJourney(journeyId) {
         bodyStyle: data.bodyType,
       }, journeyId);
       
+      console.log('✅ CustomerDetailJourney response:', response);
+      
       const cleanResponse = cleanObject(response);
       setCustomerJourneyData(prev => ({ ...prev, ...cleanResponse }));
       return cleanResponse;
     } catch (err) {
       const errorMessage = getUserFriendlyMessage(err);
-      console.error('Error updating customer journey:', err);
+      console.error('❌ Error updating customer journey:', err);
       setError(errorMessage);
       
       if (window.showToast) {

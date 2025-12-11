@@ -142,7 +142,6 @@ const MakeModelFlow = () => {
 
 
   // Effect for step 4 reload: Load valuation and branches when page is reloaded
-  // Effect for step 4 reload: Load valuation and branches when page is reloaded
   useEffect(() => {
     const isOnStep4Url = window.location.pathname.includes('/secure/bookappointment');
 
@@ -184,14 +183,14 @@ const MakeModelFlow = () => {
         });
       }
 
-      // Load branches
+      // Load branches with validateOnly=true to prevent navigation
       const loadBranches = async () => {
         setLoadingValuation(true);
         try {
           await branches.fetchBranches(
             hasZipCode,
             customerJourneyData.customerVehicleId,
-            true
+            true // validateOnly=true to prevent navigation
           );
         } catch (err) {
           console.error('Error loading branches on reload:', err);
@@ -209,6 +208,13 @@ const MakeModelFlow = () => {
    * Handle Series & Body form submission
    */
   const handleSeriesBodySubmit = useCallback(async (data) => {
+    console.log('🚀 handleSeriesBodySubmit called:', {
+      data,
+      currentPath: window.location.pathname,
+      customerJourneyId,
+      isMobile: window.innerWidth < 768
+    });
+
     trackSubmission('series_body', {
       vehicle_series: data.series,
       vehicle_body_type: data.bodyType,
@@ -216,20 +222,31 @@ const MakeModelFlow = () => {
 
     try {
       const response = await updateSeriesBody(data);
+      console.log('✅ updateSeriesBody response:', response);
+      
       if (response) {
         updateVehicleData({ ...vehicleData, ...response });
+        console.log('🧭 About to navigate to step 3, current URL:', window.location.pathname);
+        
+        console.log('🚀 Executing navigateToStep(3)');
         navigateToStep(3);
+      } else {
+        console.warn('⚠️ No response from updateSeriesBody, not navigating');
       }
     } catch (error) {
-      console.error('Error updating series/body:', error);
+      console.error('❌ Error updating series/body:', error);
     }
-  }, [trackSubmission, updateSeriesBody, updateVehicleData, vehicleData, navigateToStep]);
+  }, [trackSubmission, updateSeriesBody, updateVehicleData, vehicleData, navigateToStep, customerJourneyId]);
 
   // Auto-advance when both series and body type have only one option
   // Only auto-advance if URL actually indicates step 2 (not if step state is temporarily wrong)
   useEffect(() => {
-    const isStep2Url = window.location.pathname.includes('/valuation/vehicledetails');
-    if (step === 2 && isStep2Url && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
+    const currentPath = window.location.pathname;
+    const isStep2Url = currentPath.includes('/valuation/vehicledetails');
+    const isNotStep4Url = !currentPath.includes('/secure/bookappointment');
+    
+    // Only auto-advance if we're actually on step 2 URL and not on step 4 URL
+    if (step === 2 && isStep2Url && isNotStep4Url && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
       // Small delay to ensure UI updates are visible
       const timer = setTimeout(() => {
         handleSeriesBodySubmit({
@@ -289,7 +306,8 @@ const MakeModelFlow = () => {
           cleanData?.customerVehicleId || customerJourneyData?.customerVehicleId
         );
 
-        if (branchResult?.shouldNavigate) {
+        // Only navigate to step 4 if we're not already there
+        if (branchResult?.shouldNavigate && step !== 4) {
           navigateToStep(4);
         }
       }
@@ -635,16 +653,20 @@ const MakeModelFlow = () => {
 
   // Step 1: Show ValuationTabs
   // Only show step 1 if URL actually indicates step 1 (not if step state is temporarily wrong)
-  // Step 1 URLs: /valuation, /sell-by-make-model, or /valuation/{uuid} (without vehicledetails/vehiclecondition/bookappointment)
   const currentPath = window.location.pathname;
-  const isStep1Url = currentPath === '/valuation' || 
-                     currentPath === '/sell-by-make-model' ||
-                     (currentPath.startsWith('/valuation/') && 
-                      !currentPath.includes('/vehicledetails') && 
-                      !currentPath.includes('/vehiclecondition') &&
-                      !currentPath.includes('/bookappointment'));
   
-  if (step === 1 && isStep1Url) {
+  // NEVER show ValuationTabs if URL is for step 4 (bookappointment)
+  const isStep4Url = currentPath.includes('/secure/bookappointment');
+  const isStep3Url = currentPath.includes('/valuation/vehiclecondition');
+  const isStep2Url = currentPath.includes('/valuation/vehicledetails');
+  
+  // Step 1 URLs: /valuation, /sell-by-make-model, or /valuation/{uuid} (without vehicledetails/vehiclecondition/bookappointment)
+  const isStep1Url = !isStep4Url && !isStep3Url && !isStep2Url && 
+                     (currentPath === '/valuation' || 
+                      currentPath === '/sell-by-make-model' ||
+                      currentPath.startsWith('/valuation/'));
+  
+  if (step === 1 && isStep1Url && !isStep4Url) {
     return (
       <ValuationTabs
         activeTab={0}
@@ -678,10 +700,8 @@ const MakeModelFlow = () => {
       >
         {/* Determine actual step from URL to prevent rendering wrong content */}
         {(() => {
-          const urlStep = currentPath.includes('/secure/bookappointment') ? 4 :
-                          currentPath.includes('/valuation/vehiclecondition') ? 3 :
-                          currentPath.includes('/valuation/vehicledetails') ? 2 : step;
-          const effectiveStep = urlStep;
+          // Use the already calculated URL-based step flags
+          const effectiveStep = isStep4Url ? 4 : isStep3Url ? 3 : isStep2Url ? 2 : step;
           
           return (
             <>
