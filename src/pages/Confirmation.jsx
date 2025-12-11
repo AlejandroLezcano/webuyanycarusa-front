@@ -17,7 +17,7 @@ import { trackPageView } from "../utils/tracking";
 import { GetCustomerJourney } from "../services/vehicleService";
 import { getBrancheById } from "../services/branchService";
 import { weekDays } from "../utils/model";
-import { getPeriod } from "../utils/helpers";
+import { getPeriod, convertTo12Hour, formatDate as formatDateHelper } from "../utils/helpers";
 
 
 const Confirmation = () => {
@@ -910,17 +910,17 @@ const Confirmation = () => {
                     <div className="flex items-start py-3 border-b border-gray-200">
                       <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Date</span>
                       <span className="text-gray-900 flex-1">
-                        {
-                          appointmentInfoState?.date || appointmentInfoState?.date || formatDate(appointmentInfoState?.date) || "Not specified"
-                        }
+                        {formatDate(appointmentInfoState?.date) || "Not specified"}
                       </span>
                     </div>
                     <div className="flex items-start py-3">
                       <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Time</span>
                       <span className="text-gray-900 flex-1">
-                        {appointmentInfoState?.specificTime?.timeSlot24Hour ||
-                          appointmentInfoState?.time ||
-                          "Not specified"}
+                        {appointmentInfoState?.specificTime?.timeSlot24Hour 
+                          ? getPeriod(convertTo12Hour(appointmentInfoState.specificTime.timeSlot24Hour))
+                          : appointmentInfoState?.time 
+                            ? getPeriod(appointmentInfoState.time)
+                            : "Not specified"}
                       </span>
                     </div>
                   </div>
