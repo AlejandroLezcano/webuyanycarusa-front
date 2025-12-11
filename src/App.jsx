@@ -54,7 +54,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <GTMProvider>
             <Layout>
               <Routes>
