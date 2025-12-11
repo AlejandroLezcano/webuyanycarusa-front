@@ -20,6 +20,7 @@ import Button from '../UI/Button';
  * @param {string} props.selectedBodyType - Currently selected body type
  * @param {boolean} props.isSeriesDisabled - Whether series select is disabled
  * @param {boolean} props.isBodyTypeDisabled - Whether body type select is disabled
+ * @param {boolean} props.shouldAutoAdvance - Whether to auto-advance to next step
  * @param {Function} props.onSeriesChange - Handler for series change
  * @param {Function} props.onBodyTypeChange - Handler for body type change
  * @param {Function} props.onSubmit - Handler for form submission
@@ -33,6 +34,7 @@ const StepSeriesBody = ({
   selectedBodyType,
   isSeriesDisabled,
   isBodyTypeDisabled,
+  shouldAutoAdvance,
   onSeriesChange,
   onBodyTypeChange,
   onSubmit,
@@ -87,6 +89,27 @@ const StepSeriesBody = ({
       animate={{ opacity: 1, x: 0, scale: 1 }}
       transition={{ duration: 0.5, type: 'spring' }}
     >
+      {/* Auto-advance notification */}
+      {shouldAutoAdvance && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                className="w-3 h-3 border-2 border-white border-t-transparent rounded-full"
+              />
+            </div>
+            <p className="text-green-700 font-medium">
+              Only one option available for each selection. Automatically proceeding to next step...
+            </p>
+          </div>
+        </motion.div>
+      )}
       <div
         className="rounded-3xl p-10 transition-all duration-500"
         style={{

@@ -142,6 +142,8 @@ const MakeModelFlow = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerJourneyData, vehicleSeries.listSeries.length]);
 
+
+
   // Effect for step 4 reload: Load valuation and branches when page is reloaded
   useEffect(() => {
     const isOnStep4Url = window.location.pathname.includes('/secure/bookappointment');
@@ -224,6 +226,21 @@ const MakeModelFlow = () => {
       console.error('Error updating series/body:', error);
     }
   }, [trackSubmission, updateSeriesBody, updateVehicleData, vehicleData, navigateToStep]);
+
+  // Auto-advance when both series and body type have only one option
+  useEffect(() => {
+    if (step === 2 && vehicleSeries.shouldAutoAdvance && !journeyLoading) {
+      // Small delay to ensure UI updates are visible
+      const timer = setTimeout(() => {
+        handleSeriesBodySubmit({
+          series: vehicleSeries.selectedSeries,
+          bodyType: vehicleSeries.selectedBodyType,
+        });
+      }, 1000); // 1 second delay to show the auto-selection
+
+      return () => clearTimeout(timer);
+    }
+  }, [step, vehicleSeries.shouldAutoAdvance, vehicleSeries.selectedSeries, vehicleSeries.selectedBodyType, journeyLoading, handleSeriesBodySubmit]);
 
   /**
    * Process valuation and fetch branches
@@ -410,11 +427,7 @@ const MakeModelFlow = () => {
       const existingAppointmentId = localStorage.getItem('existingAppointmentId');
       const isReschedule = !!existingAppointmentId;
 
-      console.log('🔄 [MakeModelFlow] Appointment confirmation:', {
-        existingAppointmentId,
-        isReschedule,
-        appointmentData
-      });
+      
 
       const appointmentPayload = {
         customerVehicleId: vehicleData.customerVehicleId,
@@ -680,6 +693,7 @@ const MakeModelFlow = () => {
                 selectedBodyType={vehicleSeries.selectedBodyType}
                 isSeriesDisabled={vehicleSeries.isSeriesDisabled}
                 isBodyTypeDisabled={vehicleSeries.isBodyTypeDisabled}
+                shouldAutoAdvance={vehicleSeries.shouldAutoAdvance}
                 onSeriesChange={vehicleSeries.handleSeriesChange}
                 onBodyTypeChange={vehicleSeries.handleBodyTypeChange}
                 onSubmit={handleSeriesBodySubmit}

@@ -155,6 +155,12 @@ export function useVehicleSeries(vehicleInfo) {
     }
   }, [selectedSeries, listSeries]);
 
+  // Check if both series and body type should auto-advance
+  const shouldAutoAdvance = seriesOptions.length === 1 && 
+    listBodyTypes.length === 1 && 
+    selectedSeries && 
+    selectedBodyType;
+
   return {
     listSeries,
     listBodyTypes,
@@ -167,6 +173,7 @@ export function useVehicleSeries(vehicleInfo) {
     bodyTypeOptions,
     isSeriesDisabled,
     isBodyTypeDisabled,
+    shouldAutoAdvance,
     fetchSeries,
     loadImage,
     handleSeriesChange,
