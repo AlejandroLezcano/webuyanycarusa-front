@@ -79,7 +79,7 @@ const StepVehicleCondition = ({
     <motion.div
       initial={{ opacity: 0, x: -30, scale: 0.95 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
-      transition={{ duration: 0.5, type: 'spring' }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
     >
       <div
         className="rounded-3xl p-10 transition-all duration-500"
@@ -231,9 +231,8 @@ const StepVehicleCondition = ({
             />
 
             <label
-              className={`flex items-center gap-3 ${
-                !isPhoneValid ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-              }`}
+              className={`flex items-center gap-3 ${!isPhoneValid ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                }`}
             >
               <input
                 type="checkbox"

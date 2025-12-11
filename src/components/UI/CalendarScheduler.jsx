@@ -807,7 +807,7 @@ const CalendarScheduler = ({
                   key={`${dayOffset}-${idx}`}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05, duration: 0.3 }}
+                  transition={{ delay: idx * 0.02, duration: 0.2, ease: 'easeOut' }}
                   className="text-center"
                 >
                   <div className="text-white font-bold text-sm md:text-base">
