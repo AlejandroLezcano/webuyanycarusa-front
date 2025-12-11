@@ -26,32 +26,44 @@ const HomePage = () => {
   const [titleButton1, setTitleButton1] = useState("");
   const [description, setDescription] = useState("");
   const [appointmentData, setAppointmentData] = useState(null);
+  const [isLoading, setIsLoading] = useState(!!id);
 
 
   useEffect(() => {
-    const visitorId = getCookie("visitorId");
+    const checkAppointment = async () => {
+      const visitorId = getCookie("visitorId");
+      let foundData = false;
 
-    if (visitorId) {
-      GetCustomerJourneyByVisit(visitorId).then(data => {
+      if (visitorId) {
+        try {
+          const data = await GetCustomerJourneyByVisit(visitorId);
+          if (data && data.currentAppointment) {
+            setAppointmentData(data);
+            foundData = true;
+            if (location.pathname === '/' && data.customerJourneyId) {
+              navigate(`/welcome/home/${data.customerJourneyId}`, { replace: true });
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching journey:", error);
+        }
+      }
 
-        if (data.currentAppointment) {
-          setAppointmentData(data);
-          // Redirect to URL with ID if we're not already on that route
-          if (location.pathname === '/' && data.customerJourneyId) {
-            navigate(`/welcome/home/${data.customerJourneyId}`, { replace: true });
+      // Fallback to local storage if API didn't return valid appointment data
+      if (!foundData) {
+        const localData = JSON.parse(localStorage.getItem("appointmentData"));
+        if (localData) {
+          setAppointmentData(localData);
+          if (location.pathname === '/' && localData.customerJourneyId) {
+            navigate(`/welcome/home/${localData.customerJourneyId}`, { replace: true });
           }
         }
-      });
-    }
-    const data = JSON.parse(localStorage.getItem("appointmentData"));
-    if (data) {
-      setAppointmentData(data);
-      // Redirect to URL with ID if we're not already on that route
-      if (location.pathname === '/' && data.customerJourneyId) {
-        navigate(`/welcome/home/${data.customerJourneyId}`, { replace: true });
       }
-    }
 
+      setIsLoading(false);
+    };
+
+    checkAppointment();
   }, [location.pathname, navigate]);
 
   const handleChangeAppointment = () => {
@@ -199,7 +211,10 @@ const HomePage = () => {
           hideSubtitle={!!appointmentData}
         />
 
-        {appointmentData ? (
+        {isLoading ? (
+          // Minimal loading state to avoid flickering incorrect content
+          <div className="min-h-[400px]"></div>
+        ) : appointmentData ? (
           <>
             <ChangeAppointment
               imageUrl={appointmentData.vehicleImageUrl}
@@ -235,14 +250,16 @@ const HomePage = () => {
         )}
 
         {/* Common sections always visible */}
-        <div className="flex flex-col md:contents">
-          <div className="order-3 md:order-none">
-            <WhySellSection />
+        {!isLoading && (
+          <div className="flex flex-col md:contents">
+            <div className="order-3 md:order-none">
+              <WhySellSection />
+            </div>
+            <div className="order-2 md:order-none">
+              <ReviewsSection />
+            </div>
           </div>
-          <div className="order-2 md:order-none">
-            <ReviewsSection />
-          </div>
-        </div>
+        )}
         <ProcessStepsSection />
         <DisclaimerSection />
         <VINHelpModal
