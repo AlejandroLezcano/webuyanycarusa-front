@@ -877,9 +877,15 @@ const Confirmation = () => {
               <div className="lg:col-span-3 hidden lg:block">
                 <div className="bg-white rounded-lg p-4 shadow-md text-center">
                   <h2 className="text-lg font-bold text-gray-900">
-                    {branchInfo.name || branchInfo.branchName}
+                    {appointmentInfoState?.type === 'home' 
+                      ? `We Come to You ${branchInfo?.city || 'New Jersey'}`
+                      : branchInfo?.name || branchInfo?.branchName || 'Branch Location'}
                   </h2>
-                  <p className="text-sm text-gray-600">{branchInfo.city}</p>
+                  <p className="text-sm text-gray-600">
+                    {appointmentInfoState?.type === 'home' 
+                      ? 'Mobile Buyer'
+                      : branchInfo?.city || 'Location'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -902,9 +908,11 @@ const Confirmation = () => {
                     <div className="flex items-start py-3 border-b border-gray-200">
                       <span className="font-semibold text-gray-700 w-32 flex-shrink-0">Branch</span>
                       <span className="text-gray-900 flex-1">
-                        {appointmentInfoState?.location
-                          ? `${appointmentInfoState?.location} (${!branchInfo.city ? "NJ" : branchInfo.city})`
-                          : `${branchInfo.name || branchInfo.branchName} (${!branchInfo.city ? "NJ" : branchInfo.city})`}
+                        {appointmentInfoState?.type === 'home' 
+                          ? `We Come to You ${branchInfo?.city ? branchInfo.city : 'New Jersey'} (${appointmentInfoState?.address || 'Your Location'})`
+                          : appointmentInfoState?.location
+                            ? `${appointmentInfoState.location} (${branchInfo?.city || 'NJ'})`
+                            : `${branchInfo?.name || branchInfo?.branchName || 'Branch Location'} (${branchInfo?.city || 'NJ'})`}
                       </span>
                     </div>
                     <div className="flex items-start py-3 border-b border-gray-200">
