@@ -112,22 +112,22 @@ const CalendarScheduler = ({
     ];
     let daysAdded = 0;
     let currentOffset = offset;
-    
+
     // For "We Come to You" (home), show all days including weekends
     // For branch appointments, only show business days (Monday-Friday)
     const showWeekendsForHome = branchType === "home";
-    
+
     while (daysAdded < 7 && currentOffset < offset + 14) { // Safety limit
       const date = new Date();
       date.setDate(date.getDate() + currentOffset);
       const dayIndex = date.getDay();
-      
+
       // Include the date if:
       // 1. It's a home appointment (show all days)
       // 2. It's a branch appointment and it's a weekday (Monday=1 to Friday=5)
       const isWeekday = dayIndex >= 1 && dayIndex <= 5;
       const shouldInclude = showWeekendsForHome || isWeekday;
-      
+
       if (shouldInclude) {
         // Format: day/month/year (DD/MM/YYYY)
         const day = String(date.getDate()).padStart(2, "0");
@@ -162,22 +162,22 @@ const CalendarScheduler = ({
     ];
     let daysAdded = 0;
     let currentOffset = 0;
-    
+
     // For "We Come to You" (home), show all days including weekends
     // For branch appointments, only show business days (Monday-Friday)
     const showWeekendsForHome = branchType === "home";
-    
+
     while (daysAdded < MAX_DAYS_AHEAD && currentOffset < 30) { // Safety limit of 30 days
       const date = new Date();
       date.setDate(date.getDate() + currentOffset);
       const dayIndex = date.getDay();
-      
+
       // Include the date if:
       // 1. It's a home appointment (show all days)
       // 2. It's a branch appointment and it's a weekday (Monday=1 to Friday=5)
       const isWeekday = dayIndex >= 1 && dayIndex <= 5;
       const shouldInclude = showWeekendsForHome || isWeekday;
-      
+
       if (shouldInclude) {
         // Format: day/month/year (DD/MM/YYYY)
         const day = String(date.getDate()).padStart(2, "0");
@@ -260,24 +260,24 @@ const CalendarScheduler = ({
     // Convert locationId to number for comparison (select values are strings)
     const numericLocationId = typeof locationId === 'string' ? parseInt(locationId, 10) : locationId;
     const location = locations.find((loc) => loc.id === numericLocationId);
-    
+
     if (!location || !location.timeSlots) {
       return false;
     }
-    
+
     // Convert date string to the format used by backend (YYYY-MM-DDTHH:mm:ss)
     const backendDateKey = `${dateString}T00:00:00`;
     const daySlots = location.timeSlots[backendDateKey];
-    
+
     if (!daySlots || !Array.isArray(daySlots)) {
       return false;
     }
-    
+
     // For mobile appointments (home type), check timeOfDay
     if (location.type === 'home') {
       return daySlots.some(slot => slot.timeOfDay === timeSlot);
     }
-    
+
     // For physical appointments, map timeSlot to actual time periods
     // Morning: 9:00-11:59, Afternoon: 12:00-17:59, Evening: 18:00+
     const timeSlotMapping = {
@@ -294,10 +294,10 @@ const CalendarScheduler = ({
         return hour >= 18;
       }
     };
-    
+
     const mapper = timeSlotMapping[timeSlot];
     if (!mapper) return false;
-    
+
     return daySlots.some(mapper);
   };
 
@@ -460,13 +460,13 @@ const CalendarScheduler = ({
 
   const handleMobileLocationChange = (e) => {
     const locationId = e.target.value;
-    
+
     // Check if "More Locations..." was selected
     if (locationId === "0") {
       setShowMoreLocationsModal(true);
       return;
     }
-    
+
     setSelectedLocationMobile(locationId);
     setSelectedDateMobile("");
     setSelectedTimeMobile("");
@@ -502,7 +502,7 @@ const CalendarScheduler = ({
   const loadDataBranch = (location) => {
     getBrancheById(location.id).then(response => {
       const res = response.branchLocation;
-      
+
       const obj = {};
       for (let i = 0; i < res.operationHours.length; i++) {
         const hour = res.operationHours[i];
@@ -742,22 +742,39 @@ const CalendarScheduler = ({
               {selectedLocationMobile &&
                 selectedDateMobile &&
                 (() => {
-                  // Find the selected date object to get dayIndex
-                  const selectedDateObj = allDatesForMobile.find(
-                    (date) => date.fullDate === selectedDateMobile
-                  );
-                  if (!selectedDateObj) return [];
-                  
-                  // Filter time slots to only show available ones
-                  return timeSlots
-                    .filter((timeSlot) =>
-                      isSlotAvailable(selectedLocationMobile, selectedDateObj.fullDate, timeSlot)
-                    )
-                    .map((timeSlot, index) => (
-                      <option key={timeSlot + "-" + index} value={timeSlot}>
-                        {timeSlot}
-                      </option>
-                    ));
+                  // Get actual time slots from the location data
+                  const numericLocationId = typeof selectedLocationMobile === 'string'
+                    ? parseInt(selectedLocationMobile, 10)
+                    : selectedLocationMobile;
+                  const location = locations.find((loc) => loc.id === numericLocationId);
+
+                  if (!location || !location.timeSlots) return [];
+
+                  // Get time slots for the selected date
+                  const backendDateKey = `${selectedDateMobile}T00:00:00`;
+                  const daySlots = location.timeSlots[backendDateKey];
+
+                  if (!daySlots || !Array.isArray(daySlots)) return [];
+
+                  // Return actual time slots sorted by time
+                  return daySlots
+                    .slice() // Create a copy to avoid mutating original
+                    .sort((a, b) => {
+                      const timeA = a.timeSlot24Hour || '';
+                      const timeB = b.timeSlot24Hour || '';
+                      return timeA.localeCompare(timeB);
+                    })
+                    .map((slot, index) => {
+                      // Format the display time
+                      const displayTime = slot.timeSlot24Hour || slot.timeOfDay || 'Unknown';
+                      // Use timeSlotId as value for accurate booking
+                      const slotValue = `${slot.timeSlotId}:${slot.timeSlot24Hour || slot.timeOfDay}`;
+                      return (
+                        <option key={slot.timeSlotId + "-" + index} value={slotValue}>
+                          {displayTime}
+                        </option>
+                      );
+                    });
                 })()}
             </select>
 
@@ -860,7 +877,7 @@ const CalendarScheduler = ({
                       (date) => date.fullDate === selectedDateMobile
                     );
                     if (!selectedDateObj) return [];
-                    
+
                     // Filter time slots to only show available ones
                     return timeSlots
                       .filter((timeSlot) =>
